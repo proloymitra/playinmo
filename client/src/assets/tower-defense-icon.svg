@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#34495e" />
+  
+  <!-- Terrain Grid -->
+  <defs>
+    <pattern id="terrainGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="#2c3e50" />
+      <rect width="28" height="28" x="1" y="1" fill="#34495e" />
+    </pattern>
+  </defs>
+  <rect width="280" height="220" x="10" y="40" rx="5" fill="url(#terrainGrid)" />
+  
+  <!-- Path -->
+  <path d="M10,120 L90,120 L90,180 L180,180 L180,80 L240,80 L240,200 L290,200" 
+        stroke="#f39c12" stroke-width="30" fill="none" />
+  <path d="M10,120 L90,120 L90,180 L180,180 L180,80 L240,80 L240,200 L290,200" 
+        stroke="#e67e22" stroke-width="26" fill="none" />
+  
+  <!-- Towers -->
+  <!-- Tower 1 - Cannon -->
+  <g transform="translate(50, 80)">
+    <rect width="20" height="20" fill="#3498db" />
+    <rect width="16" height="16" x="2" y="2" fill="#2980b9" />
+    <rect width="24" height="4" x="-2" y="20" fill="#7f8c8d" />
+    <rect width="8" height="10" x="6" y="-10" fill="#3498db" />
+    <rect width="12" height="4" x="4" y="-14" fill="#3498db" />
+  </g>
+  
+  <!-- Tower 2 - Magic -->
+  <g transform="translate(200, 50)">
+    <circle cx="10" cy="10" r="10" fill="#9b59b6" />
+    <circle cx="10" cy="10" r="7" fill="#8e44ad" />
+    <circle cx="10" cy="10" r="3" fill="#ecf0f1" />
+    <circle cx="8" cy="8" r="1" fill="white" />
+    <path d="M0,20 L20,20 L15,10 L5,10 Z" fill="#9b59b6" />
+  </g>
+  
+  <!-- Tower 3 - Archer -->
+  <g transform="translate(230, 150)">
+    <rect width="20" height="20" fill="#27ae60" />
+    <rect width="16" height="16" x="2" y="2" fill="#2ecc71" />
+    <path d="M10,0 L15,10 L5,10 Z" fill="#27ae60" />
+    <rect width="2" height="16" x="9" y="-16" fill="#7f8c8d" />
+    <path d="M5,-17 L15,-17 L10,-22 Z" fill="#c0392b" />
+  </g>
+  
+  <!-- Enemies -->
+  <!-- Enemy 1 -->
+  <g transform="translate(150, 180)">
+    <circle cx="0" cy="0" r="8" fill="#e74c3c" />
+    <circle cx="-3" cy="-2" r="2" fill="#ecf0f1" />
+    <circle cx="3" cy="-2" r="2" fill="#ecf0f1" />
+    <circle cx="-3" cy="-2" r="1" fill="#2c3e50" />
+    <circle cx="3" cy="-2" r="1" fill="#2c3e50" />
+    <path d="M-3,2 L3,2" stroke="#2c3e50" stroke-width="1.5" />
+  </g>
+  
+  <!-- Enemy 2 -->
+  <g transform="translate(120, 180)">
+    <rect width="14" height="14" x="-7" y="-7" fill="#e67e22" />
+    <rect width="3" height="3" x="-5" y="-4" fill="#ecf0f1" />
+    <rect width="3" height="3" x="2" y="-4" fill="#ecf0f1" />
+    <rect width="2" height="2" x="-4.5" y="-3.5" fill="#2c3e50" />
+    <rect width="2" height="2" x="2.5" y="-3.5" fill="#2c3e50" />
+    <path d="M-3,3 L3,3" stroke="#2c3e50" stroke-width="1" />
+    <circle cx="0" cy="0" r="2" fill="#c0392b" />
+  </g>
+  
+  <!-- Enemy 3 - Boss -->
+  <g transform="translate(260, 200)">
+    <circle cx="0" cy="0" r="12" fill="#c0392b" />
+    <path d="M-8,-8 L8,-8 L0,0 Z" fill="#e74c3c" />
+    <circle cx="-4" cy="-2" r="2.5" fill="#ecf0f1" />
+    <circle cx="4" cy="-2" r="2.5" fill="#ecf0f1" />
+    <circle cx="-4" cy="-2" r="1.5" fill="#2c3e50" />
+    <circle cx="4" cy="-2" r="1.5" fill="#2c3e50" />
+    <path d="M-5,4 L5,4" stroke="#2c3e50" stroke-width="2" />
+    <path d="M-8,0 L-12,0 M8,0 L12,0 M0,-8 L0,-12 M0,8 L0,12" stroke="#7f8c8d" stroke-width="2" />
+  </g>
+  
+  <!-- Projectiles and Effects -->
+  <circle cx="50" cy="105" r="3" fill="#3498db" />
+  <circle cx="120" cy="165" r="3" fill="#9b59b6" />
+  <circle cx="215" cy="150" r="3" fill="#2ecc71" />
+  
+  <!-- Explosions -->
+  <circle cx="150" cy="180" r="5" fill="#f1c40f" opacity="0.8" />
+  <circle cx="150" cy="180" r="3" fill="#e67e22" opacity="0.9" />
+  
+  <!-- Health and Status Bars -->
+  <rect width="14" height="2" x="-7" y="-12" fill="#c0392b" transform="translate(260, 200)" />
+  <rect width="10" height="2" x="-7" y="-12" fill="#27ae60" transform="translate(260, 200)" />
+  
+  <rect width="10" height="2" x="-5" y="-10" fill="#c0392b" transform="translate(120, 180)" />
+  <rect width="4" height="2" x="-5" y="-10" fill="#27ae60" transform="translate(120, 180)" />
+  
+  <!-- UI Elements -->
+  <rect width="280" height="30" x="10" y="10" rx="5" fill="#2c3e50" />
+  <text x="40" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="white">LIVES: 20</text>
+  <text x="140" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="white">WAVE: 5</text>
+  <text x="230" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="white">GOLD: 350</text>
+  
+  <!-- Title -->
+  <rect width="260" height="30" x="20" y="260" rx="5" fill="#2c3e50" />
+  <text x="150" y="280" font-family="Arial, sans-serif" font-weight="bold" font-size="18" text-anchor="middle" fill="white">TOWER DEFENSE</text>
+</svg>

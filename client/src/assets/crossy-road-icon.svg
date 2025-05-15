@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#78dcca" />
+  
+  <!-- Ground Pattern -->
+  <defs>
+    <pattern id="groundPattern" width="50" height="50" patternUnits="userSpaceOnUse">
+      <rect width="25" height="25" fill="#67c4b3" />
+      <rect x="25" y="25" width="25" height="25" fill="#67c4b3" />
+      <rect x="25" y="0" width="25" height="25" fill="#5eb3a4" />
+      <rect x="0" y="25" width="25" height="25" fill="#5eb3a4" />
+    </pattern>
+  </defs>
+  <rect y="150" width="300" height="150" fill="url(#groundPattern)" />
+  
+  <!-- Road -->
+  <rect y="180" width="300" height="40" fill="#4a4a4a" />
+  <rect y="185" width="300" height="30" fill="#5a5a5a" />
+  <rect y="193" width="20" height="4" fill="white" />
+  <rect y="193" width="20" height="4" x="30" fill="white" />
+  <rect y="193" width="20" height="4" x="60" fill="white" />
+  <rect y="193" width="20" height="4" x="90" fill="white" />
+  <rect y="193" width="20" height="4" x="120" fill="white" />
+  <rect y="193" width="20" height="4" x="150" fill="white" />
+  <rect y="193" width="20" height="4" x="180" fill="white" />
+  <rect y="193" width="20" height="4" x="210" fill="white" />
+  <rect y="193" width="20" height="4" x="240" fill="white" />
+  <rect y="193" width="20" height="4" x="270" fill="white" />
+  
+  <!-- River -->
+  <rect y="110" width="300" height="40" fill="#4d97ff" />
+  <path d="M0,115 C30,105 60,125 90,115 C120,105 150,125 180,115 C210,105 240,125 270,115 L300,115 L300,145 L0,145 Z" fill="#69a8ff" />
+  
+  <!-- Clouds -->
+  <ellipse cx="60" cy="50" rx="20" ry="15" fill="white" opacity="0.8" />
+  <ellipse cx="75" cy="45" rx="18" ry="12" fill="white" opacity="0.8" />
+  <ellipse cx="90" cy="52" rx="15" ry="10" fill="white" opacity="0.8" />
+  
+  <ellipse cx="220" cy="70" rx="25" ry="18" fill="white" opacity="0.7" />
+  <ellipse cx="240" cy="62" rx="20" ry="15" fill="white" opacity="0.7" />
+  <ellipse cx="255" cy="72" rx="22" ry="12" fill="white" opacity="0.7" />
+  
+  <!-- Log in river -->
+  <rect x="140" y="120" width="80" height="20" rx="10" fill="#8B4513" />
+  <rect x="145" y="125" width="70" height="10" rx="5" fill="#A0522D" />
+  
+  <!-- Car on road -->
+  <rect x="50" y="185" width="40" height="25" rx="5" fill="#e74c3c" />
+  <rect x="60" y="178" width="20" height="7" rx="2" fill="#c0392b" />
+  <circle cx="60" cy="210" r="6" fill="#2c3e50" />
+  <circle cx="60" cy="210" r="3" fill="#7f8c8d" />
+  <circle cx="80" cy="210" r="6" fill="#2c3e50" />
+  <circle cx="80" cy="210" r="3" fill="#7f8c8d" />
+  
+  <!-- Chicken character (cubical style) -->
+  <g transform="translate(150, 150)">
+    <!-- Body -->
+    <rect x="-15" y="-25" width="30" height="25" rx="2" fill="#f1c40f" />
+    
+    <!-- Head -->
+    <rect x="-12" y="-40" width="24" height="20" rx="2" fill="#f39c12" />
+    
+    <!-- Eyes -->
+    <rect x="-7" y="-35" width="4" height="6" rx="1" fill="white" />
+    <rect x="3" y="-35" width="4" height="6" rx="1" fill="white" />
+    <rect x="-5" y="-33" width="2" height="2" fill="black" />
+    <rect x="5" y="-33" width="2" height="2" fill="black" />
+    
+    <!-- Beak -->
+    <path d="M-3,-30 L3,-30 L0,-25 Z" fill="#e74c3c" />
+    
+    <!-- Legs -->
+    <rect x="-10" y="0" width="5" height="10" fill="#e67e22" />
+    <rect x="5" y="0" width="5" height="10" fill="#e67e22" />
+    
+    <!-- Feet -->
+    <rect x="-13" y="10" width="10" height="3" rx="1" fill="#d35400" />
+    <rect x="3" y="10" width="10" height="3" rx="1" fill="#d35400" />
+    
+    <!-- Wings -->
+    <rect x="-15" y="-20" width="5" height="15" rx="2" fill="#f39c12" />
+    <rect x="10" y="-20" width="5" height="15" rx="2" fill="#f39c12" />
+  </g>
+  
+  <!-- Small tree -->
+  <rect x="220" y="130" width="10" height="20" fill="#8B4513" />
+  <polygon points="215,130 235,130 225,100" fill="#2ecc71" />
+  <polygon points="217,115 233,115 225,90" fill="#27ae60" />
+  
+  <!-- Title -->
+  <text x="150" y="270" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#222222">CROSSY ROAD</text>
+</svg>
