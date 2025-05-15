@@ -68,7 +68,7 @@ export default function CategoryPage() {
   return (
     <>
       <Helmet>
-        <title>{getCategoryTitle()} - GameZone</title>
+        <title>{getCategoryTitle()} - PlayinMO</title>
         <meta name="description" content={getCategoryDescription()} />
       </Helmet>
       

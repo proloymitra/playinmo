@@ -36,8 +36,8 @@ export default function LeaderboardPage() {
   return (
     <>
       <Helmet>
-        <title>Leaderboard - GameZone</title>
-        <meta name="description" content="Check out the top players on GameZone. Compete with friends and climb the rankings!" />
+        <title>Leaderboard - PlayinMO</title>
+        <meta name="description" content="Check out the top players on PlayinMO. Compete with friends and climb the rankings!" />
       </Helmet>
       
       <div className="container mx-auto px-4 py-12">

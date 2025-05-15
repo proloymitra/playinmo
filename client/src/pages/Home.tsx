@@ -9,8 +9,8 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>GameZone - Play, Chat, Compete</title>
-        <meta name="description" content="Play thousands of free online games, chat with friends, and compete on leaderboards in the ultimate gaming destination." />
+        <title>PlayinMO - Play, Chat, Compete</title>
+        <meta name="description" content="PlayinMO your web gaming destination for Ai powered games - chat with friends, and compete on leaderboards in the ultimate gaming destination." />
       </Helmet>
       <HeroSection />
       <CategorySection />

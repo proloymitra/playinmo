@@ -90,8 +90,8 @@ export default function ProfilePage() {
   return (
     <>
       <Helmet>
-        <title>{user.username}'s Profile - GameZone</title>
-        <meta name="description" content={`Check out ${user.username}'s gaming profile, stats, and achievements on GameZone.`} />
+        <title>{user.username}'s Profile - PlayinMO</title>
+        <meta name="description" content={`Check out ${user.username}'s gaming profile, stats, and achievements on PlayinMO.`} />
       </Helmet>
       
       <div className="container mx-auto px-4 py-12">
