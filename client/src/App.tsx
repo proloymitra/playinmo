@@ -13,9 +13,12 @@ import ProfilePage from "@/pages/ProfilePage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import CookiePolicyPage from "@/pages/CookiePolicyPage";
+import ResponsibleGamingPage from "@/pages/ResponsibleGamingPage";
+import AdvertiseWithUsPage from "@/pages/AdvertiseWithUsPage";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 
 function Router() {
   return (
@@ -31,11 +34,14 @@ function Router() {
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
           <Route path="/terms-of-service" component={TermsOfServicePage} />
           <Route path="/cookie-policy" component={CookiePolicyPage} />
+          <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
+          <Route path="/advertise-with-us" component={AdvertiseWithUsPage} />
           {/* Fallback to 404 */}
           <Route component={NotFound} />
         </Switch>
       </main>
       <Footer />
+      <CookieConsentBanner />
     </div>
   );
 }
