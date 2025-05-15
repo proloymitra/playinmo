@@ -1,0 +1,149 @@
+1. 2048
+
+URL: https://github.com/gabrielecirulli/2048
+Source: GitHub (MIT License)
+Integration: Simple iframe or download and host the files directly
+
+2. HexGL
+
+URL: https://github.com/BKcore/HexGL
+Source: GitHub (MIT License)
+Integration: Download and host or iframe from a hosted version
+
+3. Pacman
+
+URL: https://github.com/daleharvey/pacman
+Source: GitHub (BSD License)
+Integration: Self-host by downloading the repository files
+
+4. Hextris
+
+URL: https://github.com/Hextris/hextris
+Source: GitHub (GPL-3.0 License)
+Integration: Easy to embed or self-host
+
+5. Clumsy Bird
+
+URL: https://github.com/ellisonleao/clumsy-bird
+Source: GitHub (MIT License)
+Integration: Use iframe or download the code
+
+6. Chess
+
+URL: https://github.com/lhartikk/simple-chess-ai
+Source: GitHub (MIT License)
+Integration: Self-hosting with simple HTML/JS/CSS
+
+7. Tower Defense Game
+
+URL: https://github.com/akasaki-is-a-rubbish/Html5-Tower-Defense
+Source: GitHub (MIT License)
+Integration: Easy to embed with iframe
+
+8. Hangman
+
+URL: https://github.com/vetrivelcsamy/hangman-js
+Source: GitHub (MIT License)
+Integration: Simple JavaScript files to integrate
+
+9. Break Lock
+
+URL: https://github.com/maxwellito/breaklock
+Source: GitHub (MIT License)
+Integration: Self-host the files from GitHub
+
+10. Asteroids
+
+URL: https://github.com/dmcinnes/HTML5-Asteroids
+Source: GitHub (MIT License)
+Integration: Download and host on your server
+
+11. Memory Game
+
+URL: https://github.com/sandraisrael/Memory-Game-fend
+Source: GitHub (MIT License)
+Integration: Self-host the simple HTML/CSS/JS files
+
+12. Tetris
+
+URL: https://github.com/jakesgordon/javascript-tetris
+Source: GitHub (MIT License)
+Integration: Simple code to download and host
+
+13. Minesweeper
+
+URL: https://github.com/ziebelje/minesweeper
+Source: GitHub (MIT License)
+Integration: Easy JavaScript files to host
+
+14. Snake Game
+
+URL: https://github.com/patorjk/JavaScript-Snake
+Source: GitHub (MIT License)
+Integration: Simple files to host on your server
+
+15. HTML5 Racing Game
+
+URL: https://github.com/jakesgordon/javascript-racer
+Source: GitHub (MIT License)
+Integration: Download source and host directly
+
+16. Tic Tac Toe
+
+URL: https://github.com/jeffleu/tic-tac-toe
+Source: GitHub (MIT License)
+Integration: Easy to add to any website
+
+17. Fruit Ninja Clone
+
+URL: https://github.com/ChineseDron/fruit-ninja
+Source: GitHub (MIT License)
+Integration: Simple HTML5 game, easy to host
+
+18. Space Invaders
+
+URL: https://github.com/lukegreaves5/invaders404
+Source: GitHub (MIT License)
+Integration: Self-host the HTML5 game
+
+19. Match-3 Game
+
+URL: https://github.com/MattSkala/html5-match3
+Source: GitHub (MIT License)
+Integration: Upload files to your server
+
+20. Flappy Bird Clone
+
+URL: https://github.com/nebez/floppybird
+Source: GitHub (MIT License)
+Integration: Simple to integrate with iframe
+
+21. Simon Game
+
+URL: https://github.com/mmaynar1/simon
+Source: GitHub (MIT License)
+Integration: Host the files on your server
+
+22. Checkers
+
+URL: https://github.com/khadkamhn/checkers-game
+Source: GitHub (MIT License)
+Integration: Simple HTML/CSS/JS files
+
+23. Pairs (Concentration)
+
+URL: https://github.com/wesbos/JavaScript30/tree/master/29%20-%20Countdown%20Timer
+Source: GitHub (No specific license, but free to use)
+Integration: Straightforward JavaScript integration
+
+24. Cross Zero Game
+
+URL: https://github.com/jashkenas/underscore/blob/master/examples/cross-zero.html
+Source: GitHub (MIT License)
+Integration: Single HTML file to host
+
+25. Ludo Game
+
+URL: https://github.com/codegeous/js-ludo-game
+Source: GitHub (MIT License)
+Integration: Self-host the files from GitHub

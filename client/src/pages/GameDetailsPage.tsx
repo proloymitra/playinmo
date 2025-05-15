@@ -69,24 +69,12 @@ export default function GameDetailsPage() {
   };
 
   const handlePlay = async () => {
-    // Check if the game has an external URL
-    if (game.externalUrl) {
-      // Increment play count before opening the external URL
-      try {
-        await apiRequest('POST', `/api/games/${id}/play`, null);
-        // Open the external game in a new tab
-        window.open(game.externalUrl, '_blank', 'noopener,noreferrer');
-      } catch (error) {
-        console.error('Error incrementing game plays:', error);
-      }
-    } else {
-      // Regular internal game
-      setIsPlaying(true);
-      try {
-        await apiRequest('POST', `/api/games/${id}/play`, null);
-      } catch (error) {
-        console.error('Error incrementing game plays:', error);
-      }
+    // Increment play count for all games
+    setIsPlaying(true);
+    try {
+      await apiRequest('POST', `/api/games/${id}/play`, null);
+    } catch (error) {
+      console.error('Error incrementing game plays:', error);
     }
   };
 
@@ -128,9 +116,12 @@ export default function GameDetailsPage() {
                 {isPlaying ? (
                   <div className="w-full h-full flex items-center justify-center bg-black">
                     <iframe 
-                      src={`/game-frame/${id}`} 
+                      src={game.externalUrl ? game.externalUrl : `/game-frame/${id}`} 
                       className="w-full h-full border-0"
                       title={`Play ${game.title}`}
+                      sandbox={game.externalUrl ? "allow-scripts allow-same-origin allow-popups allow-forms" : ""}
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     ></iframe>
                   </div>
                 ) : (

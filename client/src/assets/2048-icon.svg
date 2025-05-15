@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#faf8ef" />
+  
+  <!-- Game board background -->
+  <rect x="40" y="40" width="220" height="220" rx="10" fill="#bbada0" />
+  
+  <!-- Tile 2 -->
+  <rect x="50" y="50" width="45" height="45" rx="5" fill="#eee4da" />
+  <text x="72" y="80" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#776e65">2</text>
+  
+  <!-- Tile 4 -->
+  <rect x="105" y="50" width="45" height="45" rx="5" fill="#ede0c8" />
+  <text x="127" y="80" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#776e65">4</text>
+  
+  <!-- Tile 8 -->
+  <rect x="160" y="50" width="45" height="45" rx="5" fill="#f2b179" />
+  <text x="182" y="80" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#f9f6f2">8</text>
+  
+  <!-- Tile 16 -->
+  <rect x="215" y="50" width="45" height="45" rx="5" fill="#f59563" />
+  <text x="237" y="80" font-family="Arial, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="#f9f6f2">16</text>
+  
+  <!-- Tile 32 -->
+  <rect x="50" y="105" width="45" height="45" rx="5" fill="#f67c5f" />
+  <text x="72" y="135" font-family="Arial, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="#f9f6f2">32</text>
+  
+  <!-- Tile 64 -->
+  <rect x="105" y="105" width="45" height="45" rx="5" fill="#f65e3b" />
+  <text x="127" y="135" font-family="Arial, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="#f9f6f2">64</text>
+  
+  <!-- Tile 128 -->
+  <rect x="160" y="105" width="45" height="45" rx="5" fill="#edcf72" />
+  <text x="182" y="135" font-family="Arial, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#f9f6f2">128</text>
+  
+  <!-- Tile 256 -->
+  <rect x="215" y="105" width="45" height="45" rx="5" fill="#edcc61" />
+  <text x="237" y="135" font-family="Arial, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#f9f6f2">256</text>
+  
+  <!-- Tile 512 -->
+  <rect x="50" y="160" width="45" height="45" rx="5" fill="#edc850" />
+  <text x="72" y="190" font-family="Arial, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#f9f6f2">512</text>
+  
+  <!-- Tile 1024 -->
+  <rect x="105" y="160" width="45" height="45" rx="5" fill="#edc53f" />
+  <text x="127" y="190" font-family="Arial, sans-serif" font-weight="bold" font-size="12" text-anchor="middle" fill="#f9f6f2">1024</text>
+  
+  <!-- Tile 2048 -->
+  <rect x="160" y="160" width="45" height="45" rx="5" fill="#edc22e" />
+  <text x="182" y="190" font-family="Arial, sans-serif" font-weight="bold" font-size="12" text-anchor="middle" fill="#f9f6f2">2048</text>
+  
+  <!-- Empty tiles -->
+  <rect x="215" y="160" width="45" height="45" rx="5" fill="#cdc1b4" />
+  <rect x="50" y="215" width="45" height="45" rx="5" fill="#cdc1b4" />
+  <rect x="105" y="215" width="45" height="45" rx="5" fill="#cdc1b4" />
+  <rect x="160" y="215" width="45" height="45" rx="5" fill="#cdc1b4" />
+  <rect x="215" y="215" width="45" height="45" rx="5" fill="#cdc1b4" />
+  
+  <!-- Game name -->
+  <text x="150" y="280" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#776e65">2048</text>
+</svg>

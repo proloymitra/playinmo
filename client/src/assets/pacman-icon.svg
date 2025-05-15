@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#000000" />
+  
+  <!-- Maze outline -->
+  <rect x="40" y="40" width="220" height="220" rx="2" stroke="#2121ff" stroke-width="4" fill="none" />
+  
+  <!-- Maze inner walls -->
+  <rect x="80" y="80" width="40" height="40" stroke="#2121ff" stroke-width="4" fill="none" />
+  <rect x="180" y="80" width="40" height="40" stroke="#2121ff" stroke-width="4" fill="none" />
+  <rect x="80" y="180" width="40" height="40" stroke="#2121ff" stroke-width="4" fill="none" />
+  <rect x="180" y="180" width="40" height="40" stroke="#2121ff" stroke-width="4" fill="none" />
+  
+  <!-- Dots -->
+  <circle cx="60" cy="60" r="3" fill="#ffffff" />
+  <circle cx="80" cy="60" r="3" fill="#ffffff" />
+  <circle cx="100" cy="60" r="3" fill="#ffffff" />
+  <circle cx="120" cy="60" r="3" fill="#ffffff" />
+  <circle cx="140" cy="60" r="3" fill="#ffffff" />
+  <circle cx="160" cy="60" r="3" fill="#ffffff" />
+  <circle cx="180" cy="60" r="3" fill="#ffffff" />
+  <circle cx="200" cy="60" r="3" fill="#ffffff" />
+  <circle cx="220" cy="60" r="3" fill="#ffffff" />
+  <circle cx="240" cy="60" r="3" fill="#ffffff" />
+  
+  <circle cx="60" cy="240" r="3" fill="#ffffff" />
+  <circle cx="80" cy="240" r="3" fill="#ffffff" />
+  <circle cx="100" cy="240" r="3" fill="#ffffff" />
+  <circle cx="120" cy="240" r="3" fill="#ffffff" />
+  <circle cx="140" cy="240" r="3" fill="#ffffff" />
+  <circle cx="160" cy="240" r="3" fill="#ffffff" />
+  <circle cx="180" cy="240" r="3" fill="#ffffff" />
+  <circle cx="200" cy="240" r="3" fill="#ffffff" />
+  <circle cx="220" cy="240" r="3" fill="#ffffff" />
+  <circle cx="240" cy="240" r="3" fill="#ffffff" />
+  
+  <circle cx="60" cy="80" r="3" fill="#ffffff" />
+  <circle cx="60" cy="100" r="3" fill="#ffffff" />
+  <circle cx="60" cy="120" r="3" fill="#ffffff" />
+  <circle cx="60" cy="140" r="3" fill="#ffffff" />
+  <circle cx="60" cy="160" r="3" fill="#ffffff" />
+  <circle cx="60" cy="180" r="3" fill="#ffffff" />
+  <circle cx="60" cy="200" r="3" fill="#ffffff" />
+  <circle cx="60" cy="220" r="3" fill="#ffffff" />
+  
+  <circle cx="240" cy="80" r="3" fill="#ffffff" />
+  <circle cx="240" cy="100" r="3" fill="#ffffff" />
+  <circle cx="240" cy="120" r="3" fill="#ffffff" />
+  <circle cx="240" cy="140" r="3" fill="#ffffff" />
+  <circle cx="240" cy="160" r="3" fill="#ffffff" />
+  <circle cx="240" cy="180" r="3" fill="#ffffff" />
+  <circle cx="240" cy="200" r="3" fill="#ffffff" />
+  <circle cx="240" cy="220" r="3" fill="#ffffff" />
+  
+  <!-- Power pellets -->
+  <circle cx="60" cy="60" r="8" fill="#ffffff" />
+  <circle cx="240" cy="60" r="8" fill="#ffffff" />
+  <circle cx="60" cy="240" r="8" fill="#ffffff" />
+  <circle cx="240" cy="240" r="8" fill="#ffffff" />
+  
+  <!-- Pacman -->
+  <path d="M160,140 L180,120 A28,28 0 1,0 180,160 Z" fill="#ffff00" />
+  
+  <!-- Ghosts -->
+  <path d="M220,140 C220,129 229,120 240,120 C251,120 260,129 260,140 L260,160 L255,155 L250,160 L245,155 L240,160 L235,155 L230,160 L225,155 L220,160 Z" transform="scale(0.5) translate(160, 120)" fill="#ff0000" />
+  <circle cx="115" cy="132" r="3" fill="#ffffff" />
+  <circle cx="125" cy="132" r="3" fill="#ffffff" />
+  
+  <path d="M220,140 C220,129 229,120 240,120 C251,120 260,129 260,140 L260,160 L255,155 L250,160 L245,155 L240,160 L235,155 L230,160 L225,155 L220,160 Z" transform="scale(0.5) translate(80, 280)" fill="#00ffff" />
+  <circle cx="75" cy="172" r="3" fill="#ffffff" />
+  <circle cx="85" cy="172" r="3" fill="#ffffff" />
+  
+  <path d="M220,140 C220,129 229,120 240,120 C251,120 260,129 260,140 L260,160 L255,155 L250,160 L245,155 L240,160 L235,155 L230,160 L225,155 L220,160 Z" transform="scale(0.5) translate(240, 280)" fill="#ffb8ff" />
+  <circle cx="155" cy="172" r="3" fill="#ffffff" />
+  <circle cx="165" cy="172" r="3" fill="#ffffff" />
+  
+  <!-- Game Title -->
+  <text x="150" y="280" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#ffff00">PACMAN</text>
+</svg>
