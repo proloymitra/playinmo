@@ -20,6 +20,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user;
+  }
+  
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
@@ -172,14 +177,15 @@ export class DatabaseStorage implements IStorage {
       
       // Get all the relevant users
       const userIds = messages.map(message => message.userId);
-      const userList = await db
-        .select()
-        .from(users)
-        .where(sql`${users.id} IN (${userIds.join(', ')})`);
-        
+      
+      // Use a safer way to query for multiple IDs
+      const userList = await Promise.all(
+        userIds.map(id => db.select().from(users).where(eq(users.id, id)).then(rows => rows[0]))
+      );
+      
       // Join chat messages with their users
       return messages.map(message => {
-        const user = userList.find(u => u.id === message.userId)!;
+        const user = userList.find(u => u && u.id === message.userId)!;
         return { ...message, user };
       });
     } catch (error) {
