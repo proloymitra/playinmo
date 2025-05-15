@@ -361,6 +361,14 @@ export class MemStorage implements IStorage {
     this.games.set(id, updatedGame);
     return updatedGame;
   }
+  
+  async deleteGame(id: number): Promise<boolean> {
+    const exists = this.games.has(id);
+    if (!exists) return false;
+    
+    this.games.delete(id);
+    return true;
+  }
 
   // Category methods
   async getGameCategories(): Promise<GameCategory[]> {

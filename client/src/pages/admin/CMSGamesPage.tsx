@@ -655,7 +655,7 @@ export default function CMSGamesPage() {
                       <FormLabel>Category</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
-                        defaultValue={field.value.toString()}
+                        defaultValue={field.value?.toString() || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -697,7 +697,7 @@ export default function CMSGamesPage() {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={field.value || false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
