@@ -3,7 +3,8 @@ import {
   games, type Game, type InsertGame,
   gameCategories, type GameCategory, type InsertGameCategory,
   gameScores, type GameScore, type InsertGameScore,
-  chatMessages, type ChatMessage, type InsertChatMessage
+  chatMessages, type ChatMessage, type InsertChatMessage,
+  gameReviews, type GameReview, type InsertGameReview
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, asc } from "drizzle-orm";
@@ -200,6 +201,144 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return message;
+  }
+
+  // Review methods
+  async getGameReviews(gameId: number): Promise<(GameReview & { user: User })[]> {
+    try {
+      // Get all reviews for the game
+      const reviews = await db
+        .select()
+        .from(gameReviews)
+        .where(eq(gameReviews.gameId, gameId))
+        .orderBy(desc(gameReviews.createdAt));
+        
+      if (reviews.length === 0) return [];
+      
+      // Get all the relevant users
+      const userIds = [...new Set(reviews.map(review => review.userId))];
+      
+      // Use a safer way to query for multiple users
+      const userList = await Promise.all(
+        userIds.map(id => db.select().from(users).where(eq(users.id, id)).then(rows => rows[0]))
+      );
+      
+      // Join reviews with their users
+      return reviews.map(review => {
+        const user = userList.find(u => u && u.id === review.userId)!;
+        return { ...review, user };
+      });
+    } catch (error) {
+      console.error("Error fetching game reviews:", error);
+      throw new Error("Failed to fetch game reviews");
+    }
+  }
+  
+  async getUserReview(userId: number, gameId: number): Promise<GameReview | undefined> {
+    const [review] = await db
+      .select()
+      .from(gameReviews)
+      .where(and(
+        eq(gameReviews.userId, userId),
+        eq(gameReviews.gameId, gameId)
+      ));
+      
+    return review;
+  }
+  
+  async getGameAverageRating(gameId: number): Promise<number> {
+    const result = await db
+      .select({
+        avgRating: sql<number>`AVG(${gameReviews.rating})`,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(gameReviews)
+      .where(eq(gameReviews.gameId, gameId));
+    
+    // If no reviews, return 0
+    if (!result[0] || !result[0].count || result[0].count === 0) {
+      return 0;
+    }
+    
+    return Math.round(result[0].avgRating * 10) / 10; // Round to 1 decimal place
+  }
+  
+  async createOrUpdateGameReview(review: InsertGameReview): Promise<GameReview> {
+    // Check if a review already exists
+    const existingReview = await this.getUserReview(review.userId, review.gameId);
+    
+    let result: GameReview;
+    
+    if (existingReview) {
+      // Update existing review
+      const [updatedReview] = await db
+        .update(gameReviews)
+        .set({ 
+          rating: review.rating, 
+          comment: review.comment,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(gameReviews.userId, review.userId),
+          eq(gameReviews.gameId, review.gameId)
+        ))
+        .returning();
+        
+      result = updatedReview;
+    } else {
+      // Create new review
+      const [newReview] = await db
+        .insert(gameReviews)
+        .values({ 
+          ...review, 
+          createdAt: new Date(),
+          updatedAt: new Date() 
+        })
+        .returning();
+        
+      result = newReview;
+    }
+    
+    // Update the game's rating
+    await this.updateGameRating(review.gameId);
+    
+    return result;
+  }
+  
+  async deleteGameReview(userId: number, gameId: number): Promise<boolean> {
+    try {
+      await db
+        .delete(gameReviews)
+        .where(and(
+          eq(gameReviews.userId, userId),
+          eq(gameReviews.gameId, gameId)
+        ));
+        
+      // Update the game's rating
+      await this.updateGameRating(gameId);
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting game review:", error);
+      return false;
+    }
+  }
+  
+  async updateGameRating(id: number): Promise<Game | undefined> {
+    // Calculate the average rating from all reviews
+    const avgRating = await this.getGameAverageRating(id);
+    
+    // Convert to a 0-50 scale for consistency with existing data
+    const scaledRating = Math.round(avgRating * 10);
+    
+    // Update the game's rating
+    const [updatedGame] = await db
+      .update(games)
+      .set({ rating: scaledRating })
+      .where(eq(games.id, id))
+      .returning();
+      
+    return updatedGame;
   }
 }
 

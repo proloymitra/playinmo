@@ -21,6 +21,7 @@ export interface IStorage {
   getFeaturedGames(): Promise<Game[]>;
   createGame(game: InsertGame): Promise<Game>;
   incrementGamePlays(id: number): Promise<Game | undefined>;
+  updateGameRating(id: number): Promise<Game | undefined>;
   
   // Categories
   getGameCategories(): Promise<GameCategory[]>;
@@ -32,6 +33,13 @@ export interface IStorage {
   getTopScoresByGame(gameId: number, limit: number): Promise<GameScore[]>;
   getTopPlayers(limit: number): Promise<{ user: User, totalScore: number, gamesPlayed: number, winRate: number }[]>;
   createGameScore(score: InsertGameScore): Promise<GameScore>;
+  
+  // Reviews
+  getGameReviews(gameId: number): Promise<(GameReview & { user: User })[]>;
+  getUserReview(userId: number, gameId: number): Promise<GameReview | undefined>;
+  getGameAverageRating(gameId: number): Promise<number>;
+  createOrUpdateGameReview(review: InsertGameReview): Promise<GameReview>;
+  deleteGameReview(userId: number, gameId: number): Promise<boolean>;
   
   // Chat
   getChatMessages(limit: number): Promise<(ChatMessage & { user: User })[]>;

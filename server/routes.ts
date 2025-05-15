@@ -8,7 +8,8 @@ import {
   insertGameSchema,
   insertGameCategorySchema,
   insertGameScoreSchema,
-  insertChatMessageSchema
+  insertChatMessageSchema,
+  insertGameReviewSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -275,6 +276,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({ message: "Failed to login" });
+    }
+  });
+
+  // === Reviews ===
+  // Get all reviews for a game
+  app.get("/api/games/:id/reviews", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+
+      const game = await storage.getGameById(id);
+      if (!game) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+
+      const reviews = await storage.getGameReviews(id);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  // Get a user's review for a game
+  app.get("/api/games/:gameId/reviews/user/:userId", async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.gameId);
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(gameId) || isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid IDs" });
+      }
+
+      const review = await storage.getUserReview(userId, gameId);
+      if (!review) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      res.json(review);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch review" });
+    }
+  });
+
+  // Get average rating for a game
+  app.get("/api/games/:id/rating", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+
+      const avgRating = await storage.getGameAverageRating(id);
+      res.json({ rating: avgRating });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch rating" });
+    }
+  });
+
+  // Create or update a review
+  app.post("/api/reviews", isAuthenticated, async (req, res) => {
+    try {
+      const reviewData = insertGameReviewSchema.parse(req.body);
+      
+      // Ensure the user can only submit reviews as themselves
+      if (req.user && req.user.id !== reviewData.userId) {
+        return res.status(403).json({ message: "You can only submit reviews as yourself" });
+      }
+
+      const review = await storage.createOrUpdateGameReview(reviewData);
+      res.status(201).json(review);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid review data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit review" });
+    }
+  });
+
+  // Delete a review
+  app.delete("/api/games/:gameId/reviews/user/:userId", isAuthenticated, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.gameId);
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(gameId) || isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid IDs" });
+      }
+
+      // Ensure the user can only delete their own reviews
+      if (req.user && req.user.id !== userId) {
+        return res.status(403).json({ message: "You can only delete your own reviews" });
+      }
+
+      const success = await storage.deleteGameReview(userId, gameId);
+      if (!success) {
+        return res.status(404).json({ message: "Review not found or could not be deleted" });
+      }
+
+      res.json({ message: "Review deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete review" });
     }
   });
 
