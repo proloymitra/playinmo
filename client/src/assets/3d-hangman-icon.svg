@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="50" cy="50" r="48" fill="#3f51b5" stroke="#1a237e" stroke-width="2"/>
+  
+  <!-- 3D Letter Elements - Perspective -->
+  <g transform="translate(50, 50) rotate(-15) translate(-50, -50)">
+    <!-- H letter in 3D -->
+    <path d="M30,25 L30,75 M30,50 L45,50 M45,25 L45,75" 
+          stroke="#7986cb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M33,28 L33,78 M33,53 L48,53 M48,28 L48,78" 
+          stroke="#c5cae9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <!-- Hangman Gallows - 3D Style -->
+  <path d="M20,80 L80,80 M50,20 L50,30 M50,20 L80,20 M80,20 L80,30" 
+        stroke="#8d6e63" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M23,83 L83,83 M53,23 L53,33 M53,23 L83,23 M83,23 L83,33" 
+        stroke="#6d4c41" stroke-width="2" stroke-linecap="round" fill="none"/>
+  
+  <!-- Hangman Figure - Stylized -->
+  <circle cx="50" cy="40" r="8" fill="#ffeb3b" stroke="#fbc02d" stroke-width="1.5"/>
+  <path d="M50,48 L50,65 M50,55 L40,60 M50,55 L60,60 M50,65 L43,78 M50,65 L57,78" 
+        stroke="#ffc107" stroke-width="3" stroke-linecap="round" fill="none"/>
+        
+  <!-- 3D Elements -->
+  <path d="M12,85 L25,78 L75,78 L88,85" fill="#5c6bc0" stroke="#3949ab" stroke-width="1"/>
+  
+  <!-- Decorative "3D" text effect -->
+  <text x="65" y="45" font-family="Arial" font-size="14" font-weight="bold" fill="#e8eaf6" transform="rotate(-5, 65, 45)">3D</text>
+  <text x="67" y="47" font-family="Arial" font-size="14" font-weight="bold" fill="#9fa8da" transform="rotate(-5, 67, 47)">3D</text>
+</svg>

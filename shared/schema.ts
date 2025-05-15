@@ -58,6 +58,7 @@ export const games = pgTable("games", {
   releaseDate: timestamp("release_date").notNull(),
   developer: text("developer").notNull(),
   instructions: text("instructions").notNull(),
+  externalUrl: text("external_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -72,6 +73,7 @@ export const insertGameSchema = createInsertSchema(games).pick({
   releaseDate: true,
   developer: true,
   instructions: true,
+  externalUrl: true,
 });
 
 export const gameScores = pgTable("game_scores", {
