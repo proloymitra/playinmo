@@ -67,7 +67,7 @@ export default function HeroSection() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-foreground"
+                className="border-white text-white hover:bg-white hover:text-foreground bg-transparent/20"
               >
                 Browse Games
               </Button>

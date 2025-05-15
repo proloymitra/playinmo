@@ -7,7 +7,7 @@ export default function CallToAction() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="font-bold text-3xl text-white mb-4">Ready to Play More Games?</h2>
         <p className="text-white text-lg max-w-2xl mx-auto mb-8">
-          Join MOPLAY today and get access to thousands of free games, 
+          Join PlayinMO today and get access to thousands of free games, 
           compete with friends, and climb the leaderboards!
         </p>
         <div className="flex flex-wrap justify-center gap-4">
@@ -17,7 +17,7 @@ export default function CallToAction() {
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-2 border-white text-white hover:bg-white hover:text-primary"
+            className="border-2 border-white text-white hover:bg-white hover:text-primary bg-black/20"
           >
             Browse Games
           </Button>
