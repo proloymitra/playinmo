@@ -95,6 +95,235 @@ interface Game {
   createdAt: string;
 }
 
+// Game Edit Dialog
+function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: boolean, onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const form = useForm({
+    defaultValues: game ? {
+      title: game.title || '',
+      description: game.description || '',
+      imageUrl: game.imageUrl || '',
+      categoryId: game.categoryId?.toString() || '',
+      developer: game.developer || '',
+      isFeatured: game.isFeatured || false,
+      externalUrl: game.externalUrl || '',
+    } : {}
+  });
+  
+  // Handle form submission
+  function onSubmit(data: any) {
+    if (!game) return;
+    
+    const updateData = {
+      ...data,
+      categoryId: parseInt(data.categoryId),
+      isFeatured: !!data.isFeatured,
+    };
+    
+    updateGameMutation.mutate({ 
+      id: game.id, 
+      updateData 
+    });
+  }
+  
+  // Get all categories
+  const { data: categories } = useQuery<any[]>({
+    queryKey: ['/api/categories'],
+  });
+  
+  // Update game mutation
+  const updateGameMutation = useMutation({
+    mutationFn: async (data: { id: number, updateData: Partial<Game> }) => {
+      const response = await fetch(`/api/admin/games/${data.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data.updateData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update game');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Game updated',
+        description: 'The game has been successfully updated',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to update game: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    },
+  });
+  
+  if (!game) return null;
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Edit Game</DialogTitle>
+          <DialogDescription>
+            Update the game details. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Game title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Game description" {...field} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/image.jpg" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="externalUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Game URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/game" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value ? field.value.toString() : undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="developer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Developer</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Game developer" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="isFeatured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Featured Game</FormLabel>
+                    <FormDescription>
+                      This game will be displayed in the featured games section.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updateGameMutation.isPending}
+              >
+                {updateGameMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function CMSGamesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
@@ -140,38 +369,16 @@ export default function CMSGamesPage() {
     },
   });
   
-  // Update game mutation
+  // Update game mutation (reference only - actual implementation is in GameEditDialog)
   const updateGameMutation = useMutation({
     mutationFn: async (data: { id: number, updateData: Partial<Game> }) => {
-      const response = await fetch(`/api/admin/games/${data.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data.updateData),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update game');
-      }
-      
-      return response.json();
+      return null; // Placeholder, actual implementation is in GameEditDialog
     },
     onSuccess: () => {
-      toast({
-        title: 'Game updated',
-        description: 'The game has been successfully updated',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
-      setGameToEdit(null);
-      setIsEditDialogOpen(false);
+      // Placeholder, actual implementation is in GameEditDialog
     },
     onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: `Failed to update game: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      });
+      // Placeholder, actual implementation is in GameEditDialog
     },
   });
 
