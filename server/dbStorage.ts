@@ -61,9 +61,11 @@ export class DatabaseStorage implements IStorage {
     const [game] = await db.select().from(games).where(eq(games.id, id));
     if (!game) return undefined;
     
+    const plays = (game.plays || 0) + 1;
+    
     const [updatedGame] = await db
       .update(games)
-      .set({ plays: game.plays + 1 })
+      .set({ plays })
       .where(eq(games.id, id))
       .returning();
       
@@ -120,6 +122,8 @@ export class DatabaseStorage implements IStorage {
       .from(gameScores)
       .groupBy(gameScores.userId);
       
+    if (userStats.length === 0) return [];
+    
     // Get top users based on total score
     const topUserIds = userStats
       .sort((a, b) => b.totalScore - a.totalScore)
@@ -156,25 +160,32 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getChatMessages(limit: number): Promise<(ChatMessage & { user: User })[]> {
-    // Get the latest chat messages
-    const messages = await db
-      .select()
-      .from(chatMessages)
-      .orderBy(desc(chatMessages.createdAt))
-      .limit(limit);
+    try {
+      // Get the latest chat messages
+      const messages = await db
+        .select()
+        .from(chatMessages)
+        .orderBy(desc(chatMessages.createdAt))
+        .limit(limit);
+        
+      if (messages.length === 0) return [];
       
-    // Get all the relevant users
-    const userIds = messages.map(message => message.userId);
-    const userList = await db
-      .select()
-      .from(users)
-      .where(sql`${users.id} IN (${userIds.join(', ')})`);
-      
-    // Join chat messages with their users
-    return messages.map(message => {
-      const user = userList.find(u => u.id === message.userId)!;
-      return { ...message, user };
-    });
+      // Get all the relevant users
+      const userIds = messages.map(message => message.userId);
+      const userList = await db
+        .select()
+        .from(users)
+        .where(sql`${users.id} IN (${userIds.join(', ')})`);
+        
+      // Join chat messages with their users
+      return messages.map(message => {
+        const user = userList.find(u => u.id === message.userId)!;
+        return { ...message, user };
+      });
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      throw new Error("Failed to fetch chat messages");
+    }
   }
   
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
@@ -189,180 +200,192 @@ export class DatabaseStorage implements IStorage {
 
 // Initialize the database with seed data
 export async function initializeDatabase() {
-  // Check if there are any users in the database
-  const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
-  
-  if (userCount[0].count === 0) {
-    console.log("Initializing database with seed data...");
+  try {
+    // Check if there are any users in the database
+    const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
     
-    // Add demo users
-    const demoUsers: InsertUser[] = [
-      { username: "GamerX", password: "password", email: "gamerx@example.com", avatarUrl: "https://i.pravatar.cc/150?u=gamerx" },
-      { username: "ProPlayer", password: "password", email: "proplayer@example.com", avatarUrl: "https://i.pravatar.cc/150?u=proplayer" },
-      { username: "GameMaster", password: "password", email: "gamemaster@example.com", avatarUrl: "https://i.pravatar.cc/150?u=gamemaster" },
-      { username: "CasualGamer", password: "password", email: "casualgamer@example.com", avatarUrl: "https://i.pravatar.cc/150?u=casualgamer" },
-      { username: "PixelPrincess", password: "password", email: "pixelprincess@example.com", avatarUrl: "https://i.pravatar.cc/150?u=pixelprincess" }
-    ];
-    
-    const createdUsers = await db.insert(users).values(demoUsers).returning();
-    
-    // Add game categories
-    const demoCategories: InsertGameCategory[] = [
-      { name: "Action", slug: "action", description: "Fast-paced games with emphasis on challenging gameplay", imageUrl: "https://source.unsplash.com/300x200/?action,game" },
-      { name: "Strategy", slug: "strategy", description: "Games that require careful planning and tactical thinking", imageUrl: "https://source.unsplash.com/300x200/?strategy,chess" },
-      { name: "Puzzle", slug: "puzzle", description: "Brain teasers and logic challenges", imageUrl: "https://source.unsplash.com/300x200/?puzzle,brain" },
-      { name: "Adventure", slug: "adventure", description: "Story-driven exploration games", imageUrl: "https://source.unsplash.com/300x200/?adventure,journey" },
-      { name: "Sports", slug: "sports", description: "Games based on real-world sports and competitions", imageUrl: "https://source.unsplash.com/300x200/?sports,competition" },
-      { name: "Racing", slug: "racing", description: "Speed and driving games", imageUrl: "https://source.unsplash.com/300x200/?racing,cars" }
-    ];
-    
-    const createdCategories = await db.insert(gameCategories).values(demoCategories).returning();
-    
-    // Add games
-    const demoGames: InsertGame[] = [
-      { 
-        title: "Speed Racer X", 
-        description: "Race at incredible speeds through futuristic tracks with gravity-defying vehicles.",
-        imageUrl: "https://source.unsplash.com/600x400/?racing,futuristic",
-        categoryId: 6, // Racing
-        isFeatured: true,
-        plays: 12584,
-        rating: 45, // Out of 50
-        releaseDate: new Date("2024-02-15"),
-        developer: "SpeedTech Studios",
-        instructions: "Use arrow keys to steer, Space to boost, Shift for drift."
-      },
-      { 
-        title: "Castle Puzzle Master", 
-        description: "Navigate through increasingly challenging castle puzzles by solving riddles and moving blocks.",
-        imageUrl: "https://source.unsplash.com/600x400/?castle,puzzle",
-        categoryId: 3, // Puzzle
-        isFeatured: true,
-        plays: 8741,
-        rating: 46, // Out of 50
-        releaseDate: new Date("2024-01-10"),
-        developer: "Brain Games Inc",
-        instructions: "Click and drag objects to solve puzzles. Press H for hints."
-      },
-      { 
-        title: "Epic Battle Arena", 
-        description: "Engage in epic battles with unique characters, each with special abilities and skills.",
-        imageUrl: "https://source.unsplash.com/600x400/?battle,arena",
-        categoryId: 1, // Action
-        isFeatured: true,
-        plays: 18962,
-        rating: 48, // Out of 50
-        releaseDate: new Date("2023-11-22"),
-        developer: "Epic Games Studio",
-        instructions: "WASD to move, left-click to attack, right-click for special ability."
-      },
-      { 
-        title: "Tactical Commander", 
-        description: "Lead your troops to victory through strategic decision-making and resource management.",
-        imageUrl: "https://source.unsplash.com/600x400/?strategy,commander",
-        categoryId: 2, // Strategy
-        isFeatured: true,
-        plays: 6327,
-        rating: 47, // Out of 50
-        releaseDate: new Date("2023-12-05"),
-        developer: "Strategic Minds",
-        instructions: "Use mouse to select units and issue commands. Press Tab for resources view."
-      },
-      { 
-        title: "Lost Explorer", 
-        description: "Explore mysterious islands and ancient temples while solving puzzles and collecting artifacts.",
-        imageUrl: "https://source.unsplash.com/600x400/?explore,adventure",
-        categoryId: 4, // Adventure
-        isFeatured: false,
-        plays: 9574,
-        rating: 44, // Out of 50
-        releaseDate: new Date("2024-03-01"),
-        developer: "Adventure Quest Games",
-        instructions: "WASD to move, E to interact with objects, I for inventory."
-      },
-      { 
-        title: "Basketball Pro", 
-        description: "Experience the thrill of professional basketball with realistic physics and game mechanics.",
-        imageUrl: "https://source.unsplash.com/600x400/?basketball",
-        categoryId: 5, // Sports
-        isFeatured: false,
-        plays: 11238,
-        rating: 43, // Out of 50
-        releaseDate: new Date("2023-10-15"),
-        developer: "Sports Simulation",
-        instructions: "Use arrow keys to move, Space to shoot, B to pass the ball."
-      },
-      { 
-        title: "Stealth Operative", 
-        description: "Complete covert missions requiring stealth, timing, and strategic planning.",
-        imageUrl: "https://source.unsplash.com/600x400/?stealth,spy",
-        categoryId: 1, // Action
-        isFeatured: false,
-        plays: 7865,
-        rating: 45, // Out of 50
-        releaseDate: new Date("2023-11-05"),
-        developer: "Shadow Games",
-        instructions: "Use WASD to move, C to crouch, E to interact, Q for special equipment."
-      },
-      { 
-        title: "Sudoku Master", 
-        description: "Challenge your mind with thousands of unique Sudoku puzzles of varying difficulty.",
-        imageUrl: "https://source.unsplash.com/600x400/?sudoku",
-        categoryId: 3, // Puzzle
-        isFeatured: false,
-        plays: 14752,
-        rating: 42, // Out of 50
-        releaseDate: new Date("2023-09-20"),
-        developer: "Puzzle Logic",
-        instructions: "Click on a cell and use number keys to fill in values. Press H for hints."
-      }
-    ];
-    
-    const createdGames = await db.insert(games).values(demoGames).returning();
-    
-    // Add game scores
-    const demoScores = [
-      { userId: 1, gameId: 1, score: 9875, won: true },
-      { userId: 2, gameId: 1, score: 11250, won: true },
-      { userId: 3, gameId: 1, score: 8750, won: false },
-      { userId: 4, gameId: 1, score: 7500, won: false },
-      { userId: 5, gameId: 1, score: 10500, won: true },
+    if (Number(userCount[0].count) === 0) {
+      console.log("Initializing database with seed data...");
       
-      { userId: 1, gameId: 2, score: 6250, won: true },
-      { userId: 2, gameId: 2, score: 5800, won: false },
-      { userId: 3, gameId: 2, score: 7100, won: true },
+      // Add demo users
+      const demoUsers: InsertUser[] = [
+        { username: "GamerX", password: "password", email: "gamerx@example.com", avatarUrl: "https://i.pravatar.cc/150?u=gamerx" },
+        { username: "ProPlayer", password: "password", email: "proplayer@example.com", avatarUrl: "https://i.pravatar.cc/150?u=proplayer" },
+        { username: "GameMaster", password: "password", email: "gamemaster@example.com", avatarUrl: "https://i.pravatar.cc/150?u=gamemaster" },
+        { username: "CasualGamer", password: "password", email: "casualgamer@example.com", avatarUrl: "https://i.pravatar.cc/150?u=casualgamer" },
+        { username: "PixelPrincess", password: "password", email: "pixelprincess@example.com", avatarUrl: "https://i.pravatar.cc/150?u=pixelprincess" }
+      ];
       
-      { userId: 1, gameId: 3, score: 12400, won: true },
-      { userId: 2, gameId: 3, score: 13700, won: true },
-      { userId: 3, gameId: 3, score: 11900, won: true },
-      { userId: 4, gameId: 3, score: 9800, won: false },
+      const createdUsers = await db.insert(users).values(demoUsers).returning();
+      console.log("Added demo users");
       
-      { userId: 2, gameId: 4, score: 8500, won: true },
-      { userId: 3, gameId: 4, score: 9250, won: true },
-      { userId: 5, gameId: 4, score: 7600, won: false }
-    ];
-    
-    await db.insert(gameScores)
-      .values(demoScores.map(score => ({
-        ...score,
-        createdAt: new Date()
-      })));
-    
-    // Add chat messages
-    const demoMessages = [
-      { userId: 1, message: "Anyone want to play Castle Puzzle Master?" },
-      { userId: 3, message: "I just beat Level 10 in Epic Battle Arena!" },
-      { userId: 2, message: "Looking for tips on Tactical Commander?" },
-      { userId: 5, message: "Speed Racer X is so addictive!" },
-      { userId: 4, message: "Just joined MOPLAY today. Any game recommendations?" }
-    ];
-    
-    await db.insert(chatMessages)
-      .values(demoMessages.map(message => ({
-        ...message,
-        createdAt: new Date()
-      })));
+      // Add game categories
+      const demoCategories: InsertGameCategory[] = [
+        { name: "Action", slug: "action", description: "Fast-paced games with emphasis on challenging gameplay", imageUrl: "https://source.unsplash.com/300x200/?action,game" },
+        { name: "Strategy", slug: "strategy", description: "Games that require careful planning and tactical thinking", imageUrl: "https://source.unsplash.com/300x200/?strategy,chess" },
+        { name: "Puzzle", slug: "puzzle", description: "Brain teasers and logic challenges", imageUrl: "https://source.unsplash.com/300x200/?puzzle,brain" },
+        { name: "Adventure", slug: "adventure", description: "Story-driven exploration games", imageUrl: "https://source.unsplash.com/300x200/?adventure,journey" },
+        { name: "Sports", slug: "sports", description: "Games based on real-world sports and competitions", imageUrl: "https://source.unsplash.com/300x200/?sports,competition" },
+        { name: "Racing", slug: "racing", description: "Speed and driving games", imageUrl: "https://source.unsplash.com/300x200/?racing,cars" }
+      ];
       
-    console.log("Database initialization complete!");
+      const createdCategories = await db.insert(gameCategories).values(demoCategories).returning();
+      console.log("Added game categories");
+      
+      // Add games
+      const demoGames: InsertGame[] = [
+        { 
+          title: "Speed Racer X", 
+          description: "Race at incredible speeds through futuristic tracks with gravity-defying vehicles.",
+          imageUrl: "https://source.unsplash.com/600x400/?racing,futuristic",
+          categoryId: 6, // Racing
+          isFeatured: true,
+          plays: 12584,
+          rating: 45, // Out of 50
+          releaseDate: new Date("2024-02-15"),
+          developer: "SpeedTech Studios",
+          instructions: "Use arrow keys to steer, Space to boost, Shift for drift."
+        },
+        { 
+          title: "Castle Puzzle Master", 
+          description: "Navigate through increasingly challenging castle puzzles by solving riddles and moving blocks.",
+          imageUrl: "https://source.unsplash.com/600x400/?castle,puzzle",
+          categoryId: 3, // Puzzle
+          isFeatured: true,
+          plays: 8741,
+          rating: 46, // Out of 50
+          releaseDate: new Date("2024-01-10"),
+          developer: "Brain Games Inc",
+          instructions: "Click and drag objects to solve puzzles. Press H for hints."
+        },
+        { 
+          title: "Epic Battle Arena", 
+          description: "Engage in epic battles with unique characters, each with special abilities and skills.",
+          imageUrl: "https://source.unsplash.com/600x400/?battle,arena",
+          categoryId: 1, // Action
+          isFeatured: true,
+          plays: 18962,
+          rating: 48, // Out of 50
+          releaseDate: new Date("2023-11-22"),
+          developer: "Epic Games Studio",
+          instructions: "WASD to move, left-click to attack, right-click for special ability."
+        },
+        { 
+          title: "Tactical Commander", 
+          description: "Lead your troops to victory through strategic decision-making and resource management.",
+          imageUrl: "https://source.unsplash.com/600x400/?strategy,commander",
+          categoryId: 2, // Strategy
+          isFeatured: true,
+          plays: 6327,
+          rating: 47, // Out of 50
+          releaseDate: new Date("2023-12-05"),
+          developer: "Strategic Minds",
+          instructions: "Use mouse to select units and issue commands. Press Tab for resources view."
+        },
+        { 
+          title: "Lost Explorer", 
+          description: "Explore mysterious islands and ancient temples while solving puzzles and collecting artifacts.",
+          imageUrl: "https://source.unsplash.com/600x400/?explore,adventure",
+          categoryId: 4, // Adventure
+          isFeatured: false,
+          plays: 9574,
+          rating: 44, // Out of 50
+          releaseDate: new Date("2024-03-01"),
+          developer: "Adventure Quest Games",
+          instructions: "WASD to move, E to interact with objects, I for inventory."
+        },
+        { 
+          title: "Basketball Pro", 
+          description: "Experience the thrill of professional basketball with realistic physics and game mechanics.",
+          imageUrl: "https://source.unsplash.com/600x400/?basketball",
+          categoryId: 5, // Sports
+          isFeatured: false,
+          plays: 11238,
+          rating: 43, // Out of 50
+          releaseDate: new Date("2023-10-15"),
+          developer: "Sports Simulation",
+          instructions: "Use arrow keys to move, Space to shoot, B to pass the ball."
+        },
+        { 
+          title: "Stealth Operative", 
+          description: "Complete covert missions requiring stealth, timing, and strategic planning.",
+          imageUrl: "https://source.unsplash.com/600x400/?stealth,spy",
+          categoryId: 1, // Action
+          isFeatured: false,
+          plays: 7865,
+          rating: 45, // Out of 50
+          releaseDate: new Date("2023-11-05"),
+          developer: "Shadow Games",
+          instructions: "Use WASD to move, C to crouch, E to interact, Q for special equipment."
+        },
+        { 
+          title: "Sudoku Master", 
+          description: "Challenge your mind with thousands of unique Sudoku puzzles of varying difficulty.",
+          imageUrl: "https://source.unsplash.com/600x400/?sudoku",
+          categoryId: 3, // Puzzle
+          isFeatured: false,
+          plays: 14752,
+          rating: 42, // Out of 50
+          releaseDate: new Date("2023-09-20"),
+          developer: "Puzzle Logic",
+          instructions: "Click on a cell and use number keys to fill in values. Press H for hints."
+        }
+      ];
+      
+      const createdGames = await db.insert(games).values(demoGames).returning();
+      console.log("Added games");
+      
+      // Add game scores
+      const demoScores = [
+        { userId: 1, gameId: 1, score: 9875, won: true },
+        { userId: 2, gameId: 1, score: 11250, won: true },
+        { userId: 3, gameId: 1, score: 8750, won: false },
+        { userId: 4, gameId: 1, score: 7500, won: false },
+        { userId: 5, gameId: 1, score: 10500, won: true },
+        
+        { userId: 1, gameId: 2, score: 6250, won: true },
+        { userId: 2, gameId: 2, score: 5800, won: false },
+        { userId: 3, gameId: 2, score: 7100, won: true },
+        
+        { userId: 1, gameId: 3, score: 12400, won: true },
+        { userId: 2, gameId: 3, score: 13700, won: true },
+        { userId: 3, gameId: 3, score: 11900, won: true },
+        { userId: 4, gameId: 3, score: 9800, won: false },
+        
+        { userId: 2, gameId: 4, score: 8500, won: true },
+        { userId: 3, gameId: 4, score: 9250, won: true },
+        { userId: 5, gameId: 4, score: 7600, won: false }
+      ];
+      
+      await db.insert(gameScores)
+        .values(demoScores.map(score => ({
+          ...score,
+          createdAt: new Date()
+        })));
+      console.log("Added game scores");
+      
+      // Add chat messages
+      const demoMessages = [
+        { userId: 1, message: "Anyone want to play Castle Puzzle Master?" },
+        { userId: 3, message: "I just beat Level 10 in Epic Battle Arena!" },
+        { userId: 2, message: "Looking for tips on Tactical Commander?" },
+        { userId: 5, message: "Speed Racer X is so addictive!" },
+        { userId: 4, message: "Just joined MOPLAY today. Any game recommendations?" }
+      ];
+      
+      await db.insert(chatMessages)
+        .values(demoMessages.map(message => ({
+          ...message,
+          createdAt: new Date()
+        })));
+      console.log("Added chat messages");
+        
+      console.log("Database initialization complete!");
+    } else {
+      console.log("Database already initialized, skipping seed data.");
+    }
+  } catch (error) {
+    console.error("Error initializing database:", error);
+    throw error;
   }
 }
