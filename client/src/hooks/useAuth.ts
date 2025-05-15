@@ -19,8 +19,18 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       try {
-        const response = await apiRequest("/api/auth/user");
-        return response as User;
+        const response = await fetch("/api/auth/user", {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            return null;
+          }
+          throw new Error('Failed to fetch user data');
+        }
+        
+        return await response.json();
       } catch (error) {
         // If unauthorized or any other error, return null
         return null;

@@ -25,13 +25,14 @@ const NavItem = ({ href, label, currentPath }: NavItemProps) => {
   const isActive = currentPath === href;
   
   return (
-    <Link href={href}>
-      <a className={`nav-link font-medium hover:text-primary transition-colors ${
+    <div 
+      className={`nav-link font-medium hover:text-primary transition-colors cursor-pointer ${
         isActive ? "text-primary" : "text-foreground"
-      }`}>
-        {label}
-      </a>
-    </Link>
+      }`}
+      onClick={() => window.location.href = href}
+    >
+      {label}
+    </div>
   );
 };
 
@@ -41,9 +42,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const isMobile = useIsMobile();
-
-  // Mock user state - In a real app, this would come from authentication
-  const [user, setUser] = useState<{ id: number; username: string; avatarUrl?: string } | null>(null);
+  const { user, isAuthenticated, logout } = useAuth();
   
   // Handle scroll for header styling
   useEffect(() => {
@@ -67,19 +66,20 @@ export default function Header() {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/">
-              <a className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
-                  <Gamepad className="text-white h-5 w-5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-2xl font-bold text-foreground tracking-wider">
-                    MO<span className="text-primary">PLAY</span>
-                  </span>
-                  <span className="text-xs text-muted-foreground -mt-1">Play more games on MOPLAY</span>
-                </div>
-              </a>
-            </Link>
+            <div 
+              className="flex items-center cursor-pointer" 
+              onClick={() => window.location.href = '/'}
+            >
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
+                <Gamepad className="text-white h-5 w-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-foreground tracking-wider">
+                  MO<span className="text-primary">PLAY</span>
+                </span>
+                <span className="text-xs text-muted-foreground -mt-1">Play more games on MOPLAY</span>
+              </div>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -104,60 +104,67 @@ export default function Header() {
 
             {/* User Actions */}
             <div className="flex items-center space-x-4">
-              {!user ? (
+              {!isAuthenticated ? (
                 <Button
                   className="hidden sm:inline-flex bg-primary text-white hover:bg-primary/90"
+                  onClick={() => window.location.href = '/api/auth/login'}
                 >
                   Sign In
                 </Button>
               ) : null}
               
-              <Button
-                size="icon"
-                variant="ghost"
-                className="relative"
-                aria-label="Notifications"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              {isAuthenticated && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="relative"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    3
+                  </span>
+                </Button>
+              )}
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label="User menu">
-                    {user ? (
+                    {isAuthenticated && user ? (
                       <Avatar>
-                        <AvatarImage src={user.avatarUrl} alt={user.username} />
+                        <AvatarImage src={user.avatarUrl || undefined} alt={user.username} />
                         <AvatarFallback>
                           {user.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
                       <Avatar>
-                        <AvatarFallback>GZ</AvatarFallback>
+                        <AvatarFallback>GU</AvatarFallback>
                       </Avatar>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {user ? (
+                  {isAuthenticated && user ? (
                     <>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/profile/${user.id}`}>Profile</Link>
+                      <DropdownMenuItem onClick={() => window.location.href = `/profile/${user.id}`}>
+                        Profile
                       </DropdownMenuItem>
                       <DropdownMenuItem>My Games</DropdownMenuItem>
                       <DropdownMenuItem>Settings</DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => logout()}>
                         Sign Out
                       </DropdownMenuItem>
                     </>
                   ) : (
                     <>
-                      <DropdownMenuItem>Sign In</DropdownMenuItem>
-                      <DropdownMenuItem>Register</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.location.href = '/api/auth/login'}>
+                        Sign In
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.location.href = '/api/auth/login'}>
+                        Register
+                      </DropdownMenuItem>
                     </>
                   )}
                 </DropdownMenuContent>
@@ -181,26 +188,30 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
-              <Link href="/">
-                <a className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md">
-                  Home
-                </a>
-              </Link>
-              <Link href="/category/action">
-                <a className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md">
-                  Categories
-                </a>
-              </Link>
-              <Link href="/category/new">
-                <a className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md">
-                  New Games
-                </a>
-              </Link>
-              <Link href="/leaderboard">
-                <a className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md">
-                  Leaderboards
-                </a>
-              </Link>
+              <div 
+                className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md cursor-pointer"
+                onClick={() => window.location.href = '/'}
+              >
+                Home
+              </div>
+              <div 
+                className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md cursor-pointer"
+                onClick={() => window.location.href = '/category/action'}
+              >
+                Categories
+              </div>
+              <div 
+                className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md cursor-pointer"
+                onClick={() => window.location.href = '/category/new'}
+              >
+                New Games
+              </div>
+              <div 
+                className="px-3 py-2 text-base font-medium hover:bg-accent/10 rounded-md cursor-pointer"
+                onClick={() => window.location.href = '/leaderboard'}
+              >
+                Leaderboards
+              </div>
               <div className="relative mt-2">
                 <Input
                   type="text"
