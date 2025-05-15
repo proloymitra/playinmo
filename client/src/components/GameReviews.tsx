@@ -36,13 +36,13 @@ export default function GameReviews({ gameId }: GameReviewsProps) {
   const queryClient = useQueryClient();
 
   // Fetch reviews for this game
-  const { data: reviews = [], isLoading: isLoadingReviews } = useQuery({
+  const { data: reviews = [], isLoading: isLoadingReviews } = useQuery<Review[]>({
     queryKey: [`/api/games/${gameId}/reviews`],
     enabled: !!gameId,
   });
 
   // Fetch user's existing review (if authenticated)
-  const { data: userReview } = useQuery({
+  const { data: userReview } = useQuery<Review | null>({
     queryKey: [`/api/games/${gameId}/reviews/user/${user?.id}`],
     enabled: !!gameId && !!user?.id,
     onSuccess: (data) => {
@@ -90,9 +90,7 @@ export default function GameReviews({ gameId }: GameReviewsProps) {
   // Delete review
   const deleteReviewMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/games/${gameId}/reviews/user/${user?.id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/games/${gameId}/reviews/user/${user?.id}`);
     },
     onSuccess: () => {
       toast({
