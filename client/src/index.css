@@ -161,6 +161,11 @@
   @apply w-full h-full bg-black border-0;
   aspect-ratio: 16/9;
   max-height: 80vh;
+  transition: all 0.3s ease;
+}
+
+.game-frame-container iframe:focus {
+  outline: none;
 }
 
 /* Responsive game container */
@@ -191,7 +196,12 @@
   min-height: 600px;
 }
 
-.game-frame-container iframe[src*="tetris"] {
-  @apply bg-blue-900;
+.game-frame-container iframe[src*="hexgl"] {
+  @apply bg-blue-950;
   min-height: 640px;
+}
+
+.game-frame-container iframe[src*="slither.io"] {
+  @apply bg-gray-900;
+  min-height: 600px;
 }

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#0d1117" />
+  
+  <!-- Hexagonal Grid -->
+  <defs>
+    <pattern id="hexPattern" width="30" height="52" patternUnits="userSpaceOnUse">
+      <path d="M15,0 L30,8.66 L30,26 L15,34.66 L0,26 L0,8.66 Z" fill="none" stroke="#1e3a8a" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="300" height="300" fill="url(#hexPattern)" />
+  
+  <!-- Futuristic Track -->
+  <path d="M30,150 C30,80 90,60 150,60 C210,60 270,80 270,150 C270,220 210,240 150,240 C90,240 30,220 30,150 Z" fill="none" stroke="#4338ca" stroke-width="8" stroke-linejoin="round" />
+  
+  <!-- Racing Track Lines -->
+  <path d="M50,150 C50,90 100,80 150,80 C200,80 250,90 250,150 C250,210 200,220 150,220 C100,220 50,210 50,150 Z" fill="none" stroke="#60a5fa" stroke-width="3" stroke-dasharray="10,5" />
+  
+  <!-- Glowing Effects -->
+  <circle cx="150" cy="150" r="100" fill="url(#glowRadial)" />
+  <defs>
+    <radialGradient id="glowRadial" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="70%" stop-color="#0d1117" stop-opacity="0" />
+      <stop offset="100%" stop-color="#4338ca" stop-opacity="0.2" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Racing Ship -->
+  <g transform="translate(150, 150) rotate(45) translate(-15, -15)">
+    <path d="M0,0 L30,15 L15,30 L0,15 Z" fill="#f43f5e" />
+    <path d="M0,0 L0,15 L15,30 L15,15 Z" fill="#be123c" />
+    <path d="M15,15 L30,15 L15,30 Z" fill="#9f1239" />
+    
+    <!-- Ship Thruster Glow -->
+    <circle cx="7.5" cy="7.5" r="5" fill="#fef08a" />
+    <circle cx="7.5" cy="7.5" r="3" fill="#facc15" />
+  </g>
+  
+  <!-- Speed Lines -->
+  <path d="M130,90 L150,70 L170,90" stroke="#60a5fa" stroke-width="2" fill="none" />
+  <path d="M130,210 L150,230 L170,210" stroke="#60a5fa" stroke-width="2" fill="none" />
+  
+  <!-- Hexagonal Obstacles -->
+  <path d="M60,120 L75,110 L90,120 L90,140 L75,150 L60,140 Z" fill="#1e40af" stroke="#60a5fa" stroke-width="1" />
+  <path d="M210,120 L225,110 L240,120 L240,140 L225,150 L210,140 Z" fill="#1e40af" stroke="#60a5fa" stroke-width="1" />
+  <path d="M120,60 L135,50 L150,60 L150,80 L135,90 L120,80 Z" fill="#1e40af" stroke="#60a5fa" stroke-width="1" />
+  <path d="M120,220 L135,210 L150,220 L150,240 L135,250 L120,240 Z" fill="#1e40af" stroke="#60a5fa" stroke-width="1" />
+  
+  <!-- Title -->
+  <text x="150" y="270" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#ffffff">HEXGL</text>
+</svg>

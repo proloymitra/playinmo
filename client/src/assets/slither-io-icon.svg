@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#050a0e" />
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1a2e3a" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  
+  <!-- Main snake body segments -->
+  <g transform="translate(150, 150) rotate(15)">
+    <!-- Colorful snake body -->
+    <circle cx="-90" cy="0" r="18" fill="#9333ea" />
+    <circle cx="-70" cy="-15" r="18" fill="#8b5cf6" />
+    <circle cx="-45" cy="-25" r="18" fill="#7c3aed" />
+    <circle cx="-20" cy="-25" r="18" fill="#6d28d9" />
+    <circle cx="5" cy="-15" r="18" fill="#5b21b6" />
+    <circle cx="25" cy="0" r="18" fill="#4c1d95" />
+    <circle cx="40" cy="20" r="18" fill="#6d28d9" />
+    <circle cx="50" cy="45" r="18" fill="#7c3aed" />
+    <circle cx="55" cy="70" r="18" fill="#8b5cf6" />
+    
+    <!-- Snake head -->
+    <g transform="-90,0">
+      <circle cx="-90" cy="0" r="22" fill="#a855f7" />
+      <!-- Eyes -->
+      <circle cx="-97" cy="-5" r="6" fill="white" />
+      <circle cx="-83" cy="-5" r="6" fill="white" />
+      <circle cx="-97" cy="-5" r="3" fill="black" />
+      <circle cx="-83" cy="-5" r="3" fill="black" />
+    </g>
+    
+    <!-- Glowing effect -->
+    <circle cx="-90" cy="0" r="25" fill="url(#glowRadial1)" />
+    <defs>
+      <radialGradient id="glowRadial1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="70%" stop-color="transparent" stop-opacity="0" />
+        <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3" />
+      </radialGradient>
+    </defs>
+  </g>
+  
+  <!-- Small food particles -->
+  <circle cx="50" cy="50" r="5" fill="#10b981" />
+  <circle cx="230" cy="70" r="4" fill="#f59e0b" />
+  <circle cx="180" cy="230" r="6" fill="#ef4444" />
+  <circle cx="100" cy="200" r="4" fill="#3b82f6" />
+  <circle cx="250" cy="150" r="5" fill="#ec4899" />
+  <circle cx="75" cy="250" r="3" fill="#f97316" />
+  <circle cx="150" cy="75" r="4" fill="#8b5cf6" />
+  
+  <!-- Second small snake -->
+  <g transform="translate(220, 180) rotate(160)">
+    <circle cx="0" cy="0" r="12" fill="#2dd4bf" />
+    <circle cx="-18" cy="-5" r="10" fill="#14b8a6" />
+    <circle cx="-35" cy="-10" r="8" fill="#0d9488" />
+    <circle cx="-50" cy="-5" r="7" fill="#0f766e" />
+    <!-- Small snake head -->
+    <circle cx="0" cy="0" r="14" fill="#5eead4" />
+    <!-- Eyes -->
+    <circle cx="4" cy="-3" r="4" fill="white" />
+    <circle cx="-4" cy="-3" r="4" fill="white" />
+    <circle cx="4" cy="-3" r="2" fill="black" />
+    <circle cx="-4" cy="-3" r="2" fill="black" />
+  </g>
+  
+  <!-- Title -->
+  <text x="150" y="270" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="#ffffff">SLITHER.IO</text>
+</svg>

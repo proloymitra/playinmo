@@ -117,33 +117,62 @@ export default function GameDetailsPage() {
                   <div className="w-full h-full flex items-center justify-center bg-black">
                     <div className="game-frame-container relative w-full h-full">
                       <iframe 
+                        ref={(el) => {
+                          // Assign the iframe to a variable for later focus
+                          if (el) {
+                            window.setTimeout(() => el.focus(), 1000);
+                          }
+                        }}
                         src={game.externalUrl ? game.externalUrl : `/game-frame/${id}`} 
                         className="w-full h-full border-0 absolute inset-0"
                         title={`Play ${game.title}`}
                         sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-orientation-lock allow-pointer-lock"
                         referrerPolicy="no-referrer-when-downgrade"
                         allow="accelerometer; autoplay; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi; payment; picture-in-picture"
+                        tabIndex={0}
                       ></iframe>
                       
-                      {/* Maximize button */}
-                      <button 
-                        onClick={() => {
-                          const iframe = document.querySelector('iframe');
-                          if (iframe) {
-                            if (document.fullscreenElement) {
-                              document.exitFullscreen();
-                            } else {
-                              iframe.requestFullscreen();
+                      {/* Game controls */}
+                      <div className="absolute top-4 right-4 flex gap-2 z-10">
+                        {/* Maximize button */}
+                        <button 
+                          onClick={() => {
+                            const iframe = document.querySelector('iframe');
+                            if (iframe) {
+                              if (document.fullscreenElement) {
+                                document.exitFullscreen();
+                              } else {
+                                iframe.requestFullscreen();
+                              }
                             }
-                          }
-                        }}
-                        className="absolute top-4 right-4 bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 z-10"
-                        title="Toggle fullscreen"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                        </svg>
-                      </button>
+                          }}
+                          className="bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 transition-colors"
+                          title="Toggle fullscreen"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                          </svg>
+                        </button>
+                        
+                        {/* Refresh button */}
+                        <button 
+                          onClick={() => {
+                            const iframe = document.querySelector('iframe');
+                            if (iframe) {
+                              iframe.src = iframe.src;
+                            }
+                          }}
+                          className="bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 transition-colors"
+                          title="Reload game"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M8 16H3v5"></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
