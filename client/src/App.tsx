@@ -19,6 +19,8 @@ import AdvertiseWithUsPage from "@/pages/AdvertiseWithUsPage";
 // CMS Pages
 import CMSLoginPage from "@/pages/admin/CMSLoginPage";
 import CMSDashboardPage from "@/pages/admin/CMSDashboardPage";
+import CMSGamesPage from "@/pages/admin/CMSGamesPage";
+import CMSCategoriesPage from "@/pages/admin/CMSCategoriesPage";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -44,6 +46,8 @@ function Router() {
           {/* CMS Routes */}
           <Route path="/cms" component={CMSLoginPage} />
           <Route path="/cms/dashboard" component={CMSDashboardPage} />
+          <Route path="/cms/games" component={CMSGamesPage} />
+          <Route path="/cms/categories" component={CMSCategoriesPage} />
           
           {/* Fallback to 404 */}
           <Route component={NotFound} />
