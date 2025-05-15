@@ -16,6 +16,10 @@ import CookiePolicyPage from "@/pages/CookiePolicyPage";
 import ResponsibleGamingPage from "@/pages/ResponsibleGamingPage";
 import AdvertiseWithUsPage from "@/pages/AdvertiseWithUsPage";
 
+// CMS Pages
+import CMSLoginPage from "@/pages/admin/CMSLoginPage";
+import CMSDashboardPage from "@/pages/admin/CMSDashboardPage";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
@@ -36,6 +40,11 @@ function Router() {
           <Route path="/cookie-policy" component={CookiePolicyPage} />
           <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
           <Route path="/advertise-with-us" component={AdvertiseWithUsPage} />
+          
+          {/* CMS Routes */}
+          <Route path="/cms" component={CMSLoginPage} />
+          <Route path="/cms/dashboard" component={CMSDashboardPage} />
+          
           {/* Fallback to 404 */}
           <Route component={NotFound} />
         </Switch>

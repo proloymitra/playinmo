@@ -3,6 +3,20 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { PlusCircle } from 'lucide-react';
 
+interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  isAdmin: boolean;
+}
+
+interface DashboardData {
+  counts: {
+    games: number;
+    categories: number;
+  };
+}
+
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,13 +33,13 @@ export default function CMSDashboardPage() {
   const [, navigate] = useLocation();
 
   // Check if user is admin
-  const { data: adminUser, isLoading: isCheckingAdmin, error: adminError } = useQuery({
+  const { data: adminUser, isLoading: isCheckingAdmin, error: adminError } = useQuery<AdminUser>({
     queryKey: ['/api/admin/user'],
     retry: false,
   });
 
   // Get dashboard data
-  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<DashboardData>({
     queryKey: ['/api/admin/dashboard'],
     enabled: !!adminUser,
   });

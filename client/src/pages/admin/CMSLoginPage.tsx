@@ -65,7 +65,7 @@ export default function CMSLoginPage() {
   // Request OTP mutation
   const requestOTPMutation = useMutation({
     mutationFn: async (data: RequestOTPFormData) => {
-      const response = await apiRequest('/api/admin/request-otp', {
+      const response = await fetch('/api/admin/request-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export default function CMSLoginPage() {
   // Verify OTP mutation
   const verifyOTPMutation = useMutation({
     mutationFn: async (data: VerifyOTPFormData) => {
-      const response = await apiRequest('/api/admin/verify-otp', {
+      const response = await fetch('/api/admin/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

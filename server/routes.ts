@@ -540,6 +540,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get admin user (used to check if user is admin)
   app.get("/api/admin/user", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const user = await storage.getUser(req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
