@@ -205,13 +205,3 @@
   @apply bg-gray-900;
   min-height: 600px;
 }
-
-.game-frame-container iframe[src*="clumsy-bird"], .game-frame-container iframe[src*="clumsybird"] {
-  @apply bg-sky-400;
-  min-height: 600px;
-}
-
-.game-frame-container iframe[src*="chess"], .game-frame-container iframe[src*="simple-chess"] {
-  @apply bg-gray-100;
-  min-height: 600px;
-}
