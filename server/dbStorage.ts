@@ -384,6 +384,146 @@ export class DatabaseStorage implements IStorage {
       
     return updatedGame;
   }
+  
+  async updateGame(id: number, data: Partial<Game>): Promise<Game | undefined> {
+    try {
+      // Ensure the game exists before updating
+      const game = await this.getGameById(id);
+      if (!game) {
+        return undefined;
+      }
+      
+      // Update the game with the provided data
+      const [updatedGame] = await db
+        .update(games)
+        .set(data)
+        .where(eq(games.id, id))
+        .returning();
+      
+      return updatedGame;
+    } catch (error) {
+      console.error("Error updating game:", error);
+      return undefined;
+    }
+  }
+  
+  async deleteGame(id: number): Promise<boolean> {
+    try {
+      // Ensure the game exists before deleting
+      const game = await this.getGameById(id);
+      if (!game) {
+        return false;
+      }
+      
+      // Delete the game
+      const result = await db
+        .delete(games)
+        .where(eq(games.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      return false;
+    }
+  }
+  
+  async updateCategory(id: number, data: Partial<GameCategory>): Promise<GameCategory | undefined> {
+    try {
+      // Check if the category exists
+      const [category] = await db
+        .select()
+        .from(gameCategories)
+        .where(eq(gameCategories.id, id));
+      
+      if (!category) {
+        return undefined;
+      }
+      
+      // Update the category
+      const [updatedCategory] = await db
+        .update(gameCategories)
+        .set(data)
+        .where(eq(gameCategories.id, id))
+        .returning();
+      
+      return updatedCategory;
+    } catch (error) {
+      console.error("Error updating category:", error);
+      return undefined;
+    }
+  }
+  
+  async deleteCategory(id: number): Promise<boolean> {
+    try {
+      // Check if the category exists
+      const [category] = await db
+        .select()
+        .from(gameCategories)
+        .where(eq(gameCategories.id, id));
+      
+      if (!category) {
+        return false;
+      }
+      
+      // Check if there are games using this category
+      const gamesWithCategory = await db
+        .select()
+        .from(games)
+        .where(eq(games.categoryId, id));
+      
+      if (gamesWithCategory.length > 0) {
+        console.error(`Cannot delete category ${id} as it is used by ${gamesWithCategory.length} games`);
+        return false;
+      }
+      
+      // Delete the category
+      await db
+        .delete(gameCategories)
+        .where(eq(gameCategories.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      return false;
+    }
+  }
+  
+  // Site content management
+  private siteContent = {
+    hero: {
+      title: "PlayinMO - Your Web Gaming Destination",
+      subtitle: "Play the best browser games online - free, instantly, and without downloads.",
+      ctaText: "Play Now"
+    },
+    featured: {
+      title: "Featured Games",
+      subtitle: "Check out our most popular and exciting games"
+    },
+    categories: {
+      title: "Game Categories",
+      subtitle: "Find your favorite type of games"
+    },
+    about: {
+      title: "About PlayinMO",
+      content: "PlayinMO is your web gaming destination for AI-powered games that you can play right in your browser. No downloads, no waiting - just instant fun!"
+    }
+  };
+  
+  async getSiteContent(): Promise<any> {
+    // In a real implementation, this would be stored in the database
+    // For now, returning the hardcoded content
+    return this.siteContent;
+  }
+  
+  async updateSiteContent(data: any): Promise<any> {
+    // In a real implementation, this would update a database table
+    // For now, just updating the in-memory object
+    this.siteContent = {
+      ...this.siteContent,
+      ...data
+    };
+    return this.siteContent;
+  }
 }
 
 // Initialize the database with seed data

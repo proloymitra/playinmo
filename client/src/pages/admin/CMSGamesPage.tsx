@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   PlusCircle, 
   Search,
@@ -7,7 +7,8 @@ import {
   Edit,
   ArrowUpDown,
   Star,
-  Flame
+  Flame,
+  AlertTriangle
 } from 'lucide-react';
 
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -38,6 +39,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 interface Game {
   id: number;
@@ -53,6 +66,8 @@ interface Game {
 
 export default function CMSGamesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
+  const queryClient = useQueryClient();
 
   // Get all games
   const { data: games, isLoading: isGamesLoading } = useQuery<Game[]>({
@@ -62,6 +77,34 @@ export default function CMSGamesPage() {
   // Get all categories
   const { data: categories } = useQuery<any[]>({
     queryKey: ['/api/categories'],
+  });
+  
+  // Delete game mutation
+  const deleteGameMutation = useMutation({
+    mutationFn: async (gameId: number) => {
+      const response = await fetch(`/api/admin/games/${gameId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete game');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Game deleted',
+        description: 'The game has been successfully deleted',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      setGameToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to delete game: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    },
   });
 
   // Filter games based on search query
