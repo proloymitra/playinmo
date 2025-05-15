@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import type { Game } from '@shared/schema';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeaturedGameCard from "./FeaturedGameCard";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,7 @@ export default function HeroSection() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const featuredGamesRef = useRef<HTMLDivElement>(null);
   
-  const { data: featuredGames, isLoading, error } = useQuery({
+  const { data: featuredGames = [], isLoading, error } = useQuery<Game[]>({
     queryKey: ['/api/games/featured'],
   });
 
@@ -39,9 +40,10 @@ export default function HeroSection() {
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{ 
           backgroundImage: "url('https://source.unsplash.com/random/1920x1080/?gaming,setup')",
-          filter: "brightness(0.5)" 
+          filter: "brightness(0.3)" 
         }}
       />
+      <div className="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-24">
         <div className="max-w-3xl">
@@ -123,7 +125,7 @@ export default function HeroSection() {
                 Failed to load featured games
               </div>
             ) : (
-              featuredGames?.map((game: any) => (
+              featuredGames && featuredGames.length > 0 ? featuredGames.map((game) => (
                 <FeaturedGameCard
                   key={game.id}
                   id={game.id}
@@ -133,7 +135,7 @@ export default function HeroSection() {
                   rating={game.rating}
                   plays={game.plays}
                 />
-              ))
+              )) : <div className="p-4">No featured games available</div>
             )}
           </div>
         </div>
