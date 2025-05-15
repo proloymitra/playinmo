@@ -11,14 +11,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
-                <Gamepad className="text-white h-5 w-5" />
-              </div>
+              <img 
+                src="/src/assets/plainmo_logo1.png" 
+                alt="PlayinMO Logo" 
+                className="w-10 h-10 mr-2" 
+              />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-white tracking-wider">
-                  MO<span className="text-primary">PLAY</span>
+                  Playin<span className="text-primary">MO</span>
                 </span>
-                <span className="text-xs text-gray-400 -mt-1">Play more games on MOPLAY</span>
+                <span className="text-xs text-gray-400 -mt-1">your web gaming destination for Ai powered games</span>
               </div>
             </div>
             <p className="text-gray-400 mb-4">
@@ -81,11 +83,21 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 mb-4 md:mb-0">© 2025 MOPLAY. All rights reserved.</p>
-          <div className="flex space-x-6">
-            <Link href="/privacy"><a className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></Link>
-            <Link href="/terms"><a className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></Link>
-            <Link href="/cookies"><a className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a></Link>
+          <p className="text-gray-400 mb-4 md:mb-0">© 2025 PlayinMO. All rights reserved.</p>
+          <div className="flex flex-wrap gap-4 md:gap-6">
+            <Link href="/privacy-policy"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Privacy Policy</a></Link>
+            <Link href="/terms-of-service"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Terms of Service</a></Link>
+            <Link href="/cookie-policy"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Cookie Policy</a></Link>
+            <Link href="/responsible-gaming"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Responsible Gaming</a></Link>
+            <Link href="/advertise-with-us"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Advertise With Us</a></Link>
+            <a 
+              href="https://policies.google.com/technologies/partner-sites" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors text-sm md:text-base"
+            >
+              How Google uses data
+            </a>
           </div>
         </div>
       </div>

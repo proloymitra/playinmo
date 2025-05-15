@@ -10,6 +10,9 @@ import GameDetailsPage from "@/pages/GameDetailsPage";
 import CategoryPage from "@/pages/CategoryPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import ProfilePage from "@/pages/ProfilePage";
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
+import TermsOfServicePage from "@/pages/TermsOfServicePage";
+import CookiePolicyPage from "@/pages/CookiePolicyPage";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -25,6 +28,9 @@ function Router() {
           <Route path="/category/:slug" component={CategoryPage} />
           <Route path="/leaderboard" component={LeaderboardPage} />
           <Route path="/profile/:id" component={ProfilePage} />
+          <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+          <Route path="/terms-of-service" component={TermsOfServicePage} />
+          <Route path="/cookie-policy" component={CookiePolicyPage} />
           {/* Fallback to 404 */}
           <Route component={NotFound} />
         </Switch>
