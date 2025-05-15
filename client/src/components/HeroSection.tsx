@@ -48,11 +48,11 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-24">
         <div className="max-w-3xl">
           <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4">
-            Play More Games on <span className="text-primary">MOPLAY</span>
+            Playin<span className="text-primary">MO</span>
           </h1>
           <p className="text-gray-200 text-lg md:text-xl mb-8">
-            Join millions of players in the ultimate online gaming experience. 
-            Discover thousands of free games to play instantly!
+            Your web gaming destination for Ai powered games.
+            Join millions of players in the ultimate online gaming experience.
           </p>
           <div className="flex flex-wrap gap-4">
             <Link href="/games/featured">

@@ -70,14 +70,16 @@ export default function Header() {
               className="flex items-center cursor-pointer" 
               onClick={() => window.location.href = '/'}
             >
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
-                <Gamepad className="text-white h-5 w-5" />
-              </div>
+              <img 
+                src="/src/assets/plainmo_logo1.png" 
+                alt="PlayinMO Logo" 
+                className="w-10 h-10 mr-2" 
+              />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-foreground tracking-wider">
-                  MO<span className="text-primary">PLAY</span>
+                  Playin<span className="text-primary">MO</span>
                 </span>
-                <span className="text-xs text-muted-foreground -mt-1">Play more games on MOPLAY</span>
+                <span className="text-xs text-muted-foreground -mt-1">your web gaming destination for Ai powered games</span>
               </div>
             </div>
           </div>
