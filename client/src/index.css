@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 4%;
+    --muted: 60 5% 96%;
+    --muted-foreground: 25 5% 45%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --primary: 354 100% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 174 70% 55%;
+    --secondary-foreground: 240 6% 10%;
+    --accent: 42 100% 70%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 240 6% 70%;
+    --radius: 0.5rem;
+    
+    --success: 142 100% 70%;
+    --error: 354 100% 70%;
+    --dark: 240 10% 23%;
+    --light: 240 6% 98%;
+    
+    --chart-1: 354 100% 70%;
+    --chart-2: 174 70% 55%;
+    --chart-3: 42 100% 70%;
+    --chart-4: 250 70% 60%;
+    --chart-5: 142 100% 70%;
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 98%;
+    --card: 240 10% 4%;
+    --card-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --primary: 354 100% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 174 70% 55%;
+    --secondary-foreground: 240 6% 10%;
+    --accent: 42 100% 70%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 240 5% 84%;
+    
+    --success: 142 100% 70%;
+    --error: 354 100% 70%;
+    --dark: 240 10% 23%;
+    --light: 240 6% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Roboto', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    @apply font-bold;
+  }
+}
+
+/* Custom classes */
+@layer components {
+  .game-card {
+    @apply transition-all duration-300;
+  }
+  
+  .game-card:hover {
+    @apply transform -translate-y-2 shadow-lg;
+  }
+  
+  .category-btn {
+    @apply transition-all duration-200;
+  }
+  
+  .category-btn.active {
+    @apply bg-primary text-white;
+  }
+  
+  .nav-link {
+    @apply relative;
+  }
+  
+  .nav-link::after {
+    @apply content-[''] absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+  
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-accent rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-yellow-500;
+  }
+}
+
+/* Animation classes */
+@keyframes message-pop {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.message-animation {
+  animation: message-pop 0.3s ease forwards;
+}
+
+/* Hide scrollbar for clean UI in carousels */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Hero section styles */
+.hero-overlay {
+  @apply absolute inset-0 bg-dark bg-opacity-60;
+}
