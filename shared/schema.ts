@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").notNull(),
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -13,7 +14,23 @@ export const users = pgTable("users", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
   avatarUrl: true,
+});
+
+export const gameCategories = pgTable("game_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+});
+
+export const insertGameCategorySchema = createInsertSchema(gameCategories).pick({
+  name: true,
+  slug: true,
+  description: true,
+  imageUrl: true,
 });
 
 export const games = pgTable("games", {
@@ -21,12 +38,13 @@ export const games = pgTable("games", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
-  category: text("category").notNull(),
-  featured: boolean("featured").default(false),
-  new: boolean("new").default(false),
-  hot: boolean("hot").default(false),
+  categoryId: integer("category_id").notNull(),
+  isFeatured: boolean("is_featured").default(false),
   plays: integer("plays").default(0),
   rating: integer("rating").default(0),
+  releaseDate: timestamp("release_date").notNull(),
+  developer: text("developer").notNull(),
+  instructions: text("instructions").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -34,21 +52,13 @@ export const insertGameSchema = createInsertSchema(games).pick({
   title: true, 
   description: true, 
   imageUrl: true, 
-  category: true, 
-  featured: true,
-  new: true,
-  hot: true,
-});
-
-export const gameCategories = pgTable("game_categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  slug: text("slug").notNull().unique(),
-});
-
-export const insertGameCategorySchema = createInsertSchema(gameCategories).pick({
-  name: true,
-  slug: true,
+  categoryId: true, 
+  isFeatured: true,
+  plays: true,
+  rating: true,
+  releaseDate: true,
+  developer: true,
+  instructions: true,
 });
 
 export const gameScores = pgTable("game_scores", {
@@ -56,6 +66,7 @@ export const gameScores = pgTable("game_scores", {
   userId: integer("user_id").notNull(),
   gameId: integer("game_id").notNull(),
   score: integer("score").notNull(),
+  won: boolean("won").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -63,6 +74,7 @@ export const insertGameScoreSchema = createInsertSchema(gameScores).pick({
   userId: true,
   gameId: true,
   score: true,
+  won: true,
 });
 
 export const chatMessages = pgTable("chat_messages", {

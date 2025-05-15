@@ -132,8 +132,8 @@ export default function HeroSection() {
                   title={game.title}
                   imageUrl={game.imageUrl}
                   description={game.description}
-                  rating={game.rating}
-                  plays={game.plays}
+                  rating={game.rating || 0}
+                  plays={game.plays || 0}
                 />
               )) : <div className="p-4">No featured games available</div>
             )}

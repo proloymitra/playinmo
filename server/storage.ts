@@ -428,4 +428,14 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import DatabaseStorage and initializeDatabase
+import { DatabaseStorage, initializeDatabase } from './dbStorage';
+
+// Initialize database and export DatabaseStorage instance
+const dbStorage = new DatabaseStorage();
+initializeDatabase().catch(error => {
+  console.error("Error initializing database:", error);
+});
+
+// Export DatabaseStorage instead of MemStorage
+export const storage = dbStorage;
