@@ -78,6 +78,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 interface Game {
   id: number;
@@ -94,6 +96,18 @@ interface Game {
   externalUrl: string | null;
   createdAt: string;
 }
+
+const gameFormSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  imageUrl: z.string().url("Please enter a valid URL"),
+  categoryId: z.string().min(1, "Please select a category"),
+  developer: z.string().min(2, "Developer name is required"),
+  isFeatured: z.boolean().optional(),
+  externalUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+})
+
+type GameFormValues = z.infer<typeof gameFormSchema>;
 
 // Game Edit Dialog
 function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: boolean, onClose: () => void }) {
@@ -548,7 +562,8 @@ export default function CMSGamesPage() {
   
   // Game Edit Dialog
   function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: boolean, onClose: () => void }) {
-    const form = useForm({
+    const form = useForm<GameFormValues>({
+      resolver: zodResolver(gameFormSchema),
       defaultValues: game ? {
         title: game.title || '',
         description: game.description || '',
