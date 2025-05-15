@@ -154,6 +154,7 @@ function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: 
         description: 'The game has been successfully updated',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/games/featured'] });
       onClose();
     },
     onError: (error) => {
@@ -358,6 +359,7 @@ export default function CMSGamesPage() {
         description: 'The game has been successfully deleted',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/games/featured'] });
       setGameToDelete(null);
     },
     onError: (error) => {
