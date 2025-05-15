@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   PlusCircle, 
   Search,
   Trash2,
   Edit,
-  Eye
+  Eye,
+  AlertTriangle
 } from 'lucide-react';
 
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -28,6 +29,18 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 interface Category {
   id: number;
@@ -39,6 +52,8 @@ interface Category {
 
 export default function CMSCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const queryClient = useQueryClient();
 
   // Get all categories
   const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
@@ -48,6 +63,37 @@ export default function CMSCategoriesPage() {
   // Get all games (to count games per category)
   const { data: games } = useQuery<any[]>({
     queryKey: ['/api/games'],
+  });
+  
+  // Delete category mutation
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: number) => {
+      const response = await fetch(`/api/admin/categories/${categoryId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete category');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Category deleted',
+        description: 'The category has been successfully deleted',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to delete category: ${errorMessage}`,
+      });
+    },
   });
 
   // Filter categories based on search query
@@ -149,9 +195,37 @@ export default function CMSCategoriesPage() {
                           <Button variant="outline" size="icon">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="icon" className="text-red-500">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="icon" className="text-red-500">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Category</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{category.name}"? 
+                                  {getGameCount(category.id) > 0 && (
+                                    <div className="mt-2 flex items-center text-amber-600">
+                                      <AlertTriangle className="h-4 w-4 mr-2" />
+                                      This category contains {getGameCount(category.id)} games. You must reassign or delete those games first.
+                                    </div>
+                                  )}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteCategoryMutation.mutate(category.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                  disabled={getGameCount(category.id) > 0 || deleteCategoryMutation.isPending}
+                                >
+                                  {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
