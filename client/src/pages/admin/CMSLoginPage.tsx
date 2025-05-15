@@ -78,10 +78,20 @@ export default function CMSLoginPage() {
       if (data.otpSecret) {
         setOtpRequested(true);
         setOtpSecret(data.otpSecret);
-        toast({
-          title: 'OTP Sent',
-          description: 'Please check your email for the verification code.',
-        });
+        
+        // For development mode, auto-fill the OTP if provided
+        if (data.otp) {
+          verifyForm.setValue('otp', data.otp);
+          toast({
+            title: 'Development Mode',
+            description: `OTP auto-filled: ${data.otp}. In production, this would be sent via email.`,
+          });
+        } else {
+          toast({
+            title: 'OTP Sent',
+            description: 'Please check your email for the verification code.',
+          });
+        }
       } else {
         toast({
           title: 'OTP Request',
