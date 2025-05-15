@@ -23,6 +23,8 @@ export interface IStorage {
   getGamesByCategory(category: string): Promise<Game[]>;
   getFeaturedGames(): Promise<Game[]>;
   createGame(game: InsertGame): Promise<Game>;
+  updateGame(id: number, data: Partial<Game>): Promise<Game | undefined>;
+  deleteGame(id: number): Promise<boolean>;
   incrementGamePlays(id: number): Promise<Game | undefined>;
   updateGameRating(id: number): Promise<Game | undefined>;
   
@@ -30,6 +32,8 @@ export interface IStorage {
   getGameCategories(): Promise<GameCategory[]>;
   getGameCategoryBySlug(slug: string): Promise<GameCategory | undefined>;
   createGameCategory(category: InsertGameCategory): Promise<GameCategory>;
+  updateCategory(id: number, data: Partial<GameCategory>): Promise<GameCategory | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Scores
   getGameScores(gameId: number): Promise<GameScore[]>;
@@ -47,6 +51,10 @@ export interface IStorage {
   // Chat
   getChatMessages(limit: number): Promise<(ChatMessage & { user: User })[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  
+  // Site Content
+  getSiteContent(): Promise<any>;
+  updateSiteContent(data: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {

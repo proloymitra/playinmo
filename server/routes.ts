@@ -415,6 +415,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Admin CMS routes ===
   
+  // Admin - delete game
+  app.delete("/api/admin/games/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
+      const success = await storage.deleteGame(gameId);
+      if (!success) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      res.json({ message: "Game deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      res.status(500).json({ message: "Failed to delete game" });
+    }
+  });
+  
+  // Admin - update game
+  app.patch("/api/admin/games/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      if (isNaN(gameId)) {
+        return res.status(400).json({ message: "Invalid game ID" });
+      }
+      
+      const updateData = req.body;
+      const updatedGame = await storage.updateGame(gameId, updateData);
+      if (!updatedGame) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      res.json(updatedGame);
+    } catch (error) {
+      console.error("Error updating game:", error);
+      res.status(500).json({ message: "Failed to update game" });
+    }
+  });
+  
+  // Admin - delete category
+  app.delete("/api/admin/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.id);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const success = await storage.deleteCategory(categoryId);
+      if (!success) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+  
+  // Admin - update category
+  app.patch("/api/admin/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.id);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const updateData = req.body;
+      const updatedCategory = await storage.updateCategory(categoryId, updateData);
+      if (!updatedCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.json(updatedCategory);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+  
+  // Admin - site content
+  app.get("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const siteContent = await storage.getSiteContent();
+      res.json(siteContent);
+    } catch (error) {
+      console.error("Error fetching site content:", error);
+      res.status(500).json({ message: "Failed to fetch site content" });
+    }
+  });
+  
+  // Admin - update site content
+  app.patch("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const updateData = req.body;
+      const updatedContent = await storage.updateSiteContent(updateData);
+      res.json(updatedContent);
+    } catch (error) {
+      console.error("Error updating site content:", error);
+      res.status(500).json({ message: "Failed to update site content" });
+    }
+  });
+  
   // Request OTP login
   app.post("/api/admin/request-otp", async (req, res) => {
     try {

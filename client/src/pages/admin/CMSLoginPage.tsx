@@ -60,6 +60,7 @@ export default function CMSLoginPage() {
     defaultValues: {
       otp: '',
     },
+    mode: 'onChange',
   });
 
   // Request OTP mutation
@@ -156,7 +157,9 @@ export default function CMSLoginPage() {
 
   // Handle verify OTP form submission
   const onVerifyOTP = (data: VerifyOTPFormData) => {
-    verifyOTPMutation.mutate(data);
+    // Clean up OTP if needed (ensure no email addresses are in there)
+    const cleanOTP = data.otp.trim();
+    verifyOTPMutation.mutate({ otp: cleanOTP });
   };
 
   return (
@@ -217,6 +220,13 @@ export default function CMSLoginPage() {
                           autoComplete="one-time-code"
                           maxLength={6}
                           {...field}
+                          onFocus={(e) => {
+                            // Clear the field if it contains the email (a common issue)
+                            if (e.target.value.includes('@')) {
+                              e.target.value = '';
+                              field.onChange('');
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
