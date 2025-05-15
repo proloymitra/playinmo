@@ -55,19 +55,23 @@ export default function HeroSection() {
             Discover thousands of free games to play instantly!
           </p>
           <div className="flex flex-wrap gap-4">
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              Play Now
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-foreground"
-            >
-              Browse Games
-            </Button>
+            <Link href="/games/featured">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-white"
+              >
+                Play Now
+              </Button>
+            </Link>
+            <Link href="/games">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-foreground"
+              >
+                Browse Games
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
