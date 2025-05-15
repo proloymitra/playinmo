@@ -12,7 +12,10 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserOTP(userId: number, otpSecret: string, otpExpiry: Date): Promise<User | undefined>;
+  verifyOTP(email: string, otpSecret: string): Promise<User | undefined>;
   
   // Games
   getGames(): Promise<Game[]>;

@@ -20,6 +20,9 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   avatarUrl: text("avatar_url"),
   googleId: text("google_id").unique(),
+  isAdmin: boolean("is_admin").default(false),
+  otpSecret: text("otp_secret"),
+  otpExpiry: timestamp("otp_expiry"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -29,6 +32,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   avatarUrl: true,
   googleId: true,
+  isAdmin: true,
+  otpSecret: true,
+  otpExpiry: true,
 });
 
 export const gameCategories = pgTable("game_categories", {
