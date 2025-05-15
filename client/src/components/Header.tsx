@@ -71,9 +71,12 @@ export default function Header() {
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
                   <Gamepad className="text-white h-5 w-5" />
                 </div>
-                <span className="text-2xl font-bold text-foreground">
-                  Game<span className="text-primary">Zone</span>
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-foreground tracking-wider">
+                    MO<span className="text-primary">PLAY</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground -mt-1">Play more games on MOPLAY</span>
+                </div>
               </a>
             </Link>
           </div>

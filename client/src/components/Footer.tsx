@@ -14,9 +14,12 @@ export default function Footer() {
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
                 <Gamepad className="text-white h-5 w-5" />
               </div>
-              <span className="text-2xl font-bold text-white">
-                Game<span className="text-primary">Zone</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-white tracking-wider">
+                  MO<span className="text-primary">PLAY</span>
+                </span>
+                <span className="text-xs text-gray-400 -mt-1">Play more games on MOPLAY</span>
+              </div>
             </div>
             <p className="text-gray-400 mb-4">
               Your ultimate destination for free online games. Play, chat, and compete with friends!
@@ -78,7 +81,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 mb-4 md:mb-0">© 2023 GameZone. All rights reserved.</p>
+          <p className="text-gray-400 mb-4 md:mb-0">© 2025 MOPLAY. All rights reserved.</p>
           <div className="flex space-x-6">
             <Link href="/privacy"><a className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></Link>
             <Link href="/terms"><a className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></Link>

@@ -46,7 +46,7 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-24">
         <div className="max-w-3xl">
           <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4">
-            Play, Chat & Compete With Friends
+            Play More Games on <span className="text-primary">MOPLAY</span>
           </h1>
           <p className="text-gray-200 text-lg md:text-xl mb-8">
             Join millions of players in the ultimate online gaming experience. 
