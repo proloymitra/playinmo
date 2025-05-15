@@ -105,7 +105,7 @@ export default function GameDetailsPage() {
   return (
     <>
       <Helmet>
-        <title>{game.title} - GameZone</title>
+        <title>{game.title} - PlayinMO</title>
         <meta name="description" content={game.description} />
       </Helmet>
       
