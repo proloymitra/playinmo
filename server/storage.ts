@@ -85,11 +85,11 @@ export class MemStorage implements IStorage {
     
     // Create sample users
     const users = [
-      { username: "GamerX", password: "password", avatarUrl: "https://i.pravatar.cc/150?img=1" },
-      { username: "ProGamer99", password: "password", avatarUrl: "https://i.pravatar.cc/150?img=2" },
-      { username: "GameWizard", password: "password", avatarUrl: "https://i.pravatar.cc/150?img=3" },
-      { username: "PixelPro", password: "password", avatarUrl: "https://i.pravatar.cc/150?img=4" },
-      { username: "BattleQueen", password: "password", avatarUrl: "https://i.pravatar.cc/150?img=5" }
+      { username: "GamerX", password: "password", email: "gamer@example.com", avatarUrl: "https://i.pravatar.cc/150?img=1" },
+      { username: "ProGamer99", password: "password", email: "progamer@example.com", avatarUrl: "https://i.pravatar.cc/150?img=2" },
+      { username: "GameWizard", password: "password", email: "wizard@example.com", avatarUrl: "https://i.pravatar.cc/150?img=3" },
+      { username: "PixelPro", password: "password", email: "pixel@example.com", avatarUrl: "https://i.pravatar.cc/150?img=4" },
+      { username: "BattleQueen", password: "password", email: "queen@example.com", avatarUrl: "https://i.pravatar.cc/150?img=5" }
     ];
     
     for (const user of users) {
@@ -270,6 +270,12 @@ export class MemStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.username.toLowerCase() === username.toLowerCase()
+    );
+  }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.googleId === googleId
     );
   }
 

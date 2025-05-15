@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { configureSession, configurePassport, isAuthenticated } from "./auth";
 import { z } from "zod";
 import {
   insertUserSchema,
@@ -11,6 +12,9 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure authentication
+  configureSession(app);
+  configurePassport(app);
   // === Games ===
   // Get all games
   app.get("/api/games", async (req, res) => {
@@ -197,6 +201,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // === Users ===
+  // Get current authenticated user
+  app.get("/api/users/me", isAuthenticated, async (req, res) => {
+    try {
+      res.json(req.user);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      res.status(500).json({ message: "Failed to fetch current user" });
+    }
+  });
+  
   // Get user by ID
   app.get("/api/users/:id", async (req, res) => {
     try {

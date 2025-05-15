@@ -13,6 +13,7 @@ import {
 import { Bell, Menu, Search, Gamepad } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 
 type NavItemProps = {
   href: string;

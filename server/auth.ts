@@ -1,5 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { Express, NextFunction, Request, Response } from 'express';
@@ -52,55 +53,104 @@ export const configurePassport = (app: Express) => {
       done(error, null);
     }
   });
-
-  // Set up Google Strategy
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID || '',
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-        callbackURL: '/api/auth/google/callback',
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          // Check if user exists in the database
-          let user = await storage.getUserByGoogleId(profile.id);
-
-          if (!user) {
-            // If the user doesn't exist, create a new user
-            const email = profile.emails && profile.emails[0] ? profile.emails[0].value : '';
-            const displayName = profile.displayName || email.split('@')[0];
-            const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
-
-            user = await storage.createUser({
-              username: displayName,
-              email,
-              googleId: profile.id,
-              avatarUrl: photoUrl,
-            });
-          }
-
-          return done(null, user);
-        } catch (error) {
-          return done(error as Error, undefined);
+  
+  // Set up Local Strategy for username/password login
+  passport.use(new LocalStrategy(
+    async (username, password, done) => {
+      try {
+        const user = await storage.getUserByUsername(username);
+        
+        if (!user) {
+          return done(null, false, { message: 'Incorrect username' });
         }
+        
+        if (user.password !== password) {
+          return done(null, false, { message: 'Incorrect password' });
+        }
+        
+        return done(null, user);
+      } catch (error) {
+        return done(error);
       }
-    )
-  );
-
-  // Authentication routes
-  app.get(
-    '/api/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
-
-  app.get(
-    '/api/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }),
-    (req, res) => {
-      res.redirect('/');
     }
-  );
+  ));
+
+  // Set up Google Strategy - only if credentials are provided
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  
+  if (googleClientId && googleClientSecret) {
+    console.log('Configuring Google authentication strategy');
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: googleClientId,
+          clientSecret: googleClientSecret,
+          callbackURL: '/api/auth/google/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user exists in the database
+            let user = await storage.getUserByGoogleId(profile.id);
+
+            if (!user) {
+              // If the user doesn't exist, create a new user
+              const email = profile.emails && profile.emails[0] ? profile.emails[0].value : '';
+              const displayName = profile.displayName || email.split('@')[0];
+              const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
+
+              user = await storage.createUser({
+                username: displayName,
+                email,
+                googleId: profile.id,
+                avatarUrl: photoUrl,
+              });
+            }
+
+            return done(null, user);
+          } catch (error) {
+            return done(error as Error, undefined);
+          }
+        }
+      )
+    );
+
+    // Authentication routes - only add if Google auth is configured
+    app.get(
+      '/api/auth/google',
+      passport.authenticate('google', { scope: ['profile', 'email'] })
+    );
+
+    app.get(
+      '/api/auth/google/callback',
+      passport.authenticate('google', { failureRedirect: '/' }),
+      (req, res) => {
+        res.redirect('/');
+      }
+    );
+  } else {
+    console.log('Google authentication not configured - skipping strategy setup');
+  }
+
+  // Local authentication routes
+  app.post('/api/auth/login', (req, res, next) => {
+    passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string }) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ message: info.message || 'Authentication failed' });
+      }
+      req.login(user, (err: Error | null) => {
+        if (err) {
+          return next(err);
+        }
+        // Don't return the password in the response
+        const { password, ...userWithoutPassword } = user as any;
+        return res.json(userWithoutPassword);
+      });
+    })(req, res, next);
+  });
 
   app.get('/api/auth/logout', (req, res) => {
     req.logout((err) => {

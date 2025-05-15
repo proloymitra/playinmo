@@ -138,10 +138,9 @@ export class DatabaseStorage implements IStorage {
     if (topUserIds.length === 0) return [];
     
     // Get user details for top users
-    const topUsers = await db
-      .select()
-      .from(users)
-      .where(sql`${users.id} IN (${topUserIds.join(', ')})`);
+    const topUsers = await Promise.all(
+      topUserIds.map(id => db.select().from(users).where(eq(users.id, id)).then(rows => rows[0]))
+    );
       
     // Map user stats with user details
     return topUsers.map(user => {
