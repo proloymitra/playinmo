@@ -1,29 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
   <!-- Background -->
-  <circle cx="50" cy="50" r="48" fill="#4caf50" stroke="#2e7d32" stroke-width="2"/>
+  <rect width="300" height="300" rx="20" fill="#1a472a" />
   
-  <!-- Snake Body Pattern -->
-  <path d="M20,50 C20,40 30,30 40,30 C50,30 50,40 60,40 C70,40 70,50 80,55 C70,60 70,70 60,70 C50,70 50,60 40,60 C30,60 25,55 20,50 Z" 
-        fill="#8bc34a" stroke="#558b2f" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Snake -->
+  <path d="M240,150 C240,130 220,130 220,110 C220,90 200,90 180,90 C160,90 160,110 140,110 C120,110 120,130 100,130 C80,130 80,150 60,150 C40,150 40,170 60,170 C80,170 80,190 100,190 C120,190 120,210 140,210 C160,210 160,190 180,190 C200,190 200,170 220,170 C240,170 240,150 240,150 Z" 
+    fill="#4caf50" stroke="#388e3c" stroke-width="5" />
   
-  <!-- Snake Eye -->
-  <circle cx="73" cy="55" r="3" fill="#263238"/>
+  <!-- Snake Eyes -->
+  <circle cx="235" cy="145" r="6" fill="white" />
+  <circle cx="235" cy="155" r="6" fill="white" />
+  <circle cx="235" cy="145" r="3" fill="black" />
+  <circle cx="235" cy="155" r="3" fill="black" />
   
   <!-- Snake Tongue -->
-  <path d="M80,55 L88,52 M88,52 L91,55 M88,52 L91,49" stroke="#f44336" stroke-width="1.5" fill="none"/>
+  <path d="M240,150 L255,140 M240,150 L255,160" stroke="red" stroke-width="2" />
   
-  <!-- Forest Elements -->
-  <path d="M15,70 L15,85 L20,85 L20,70 Z" fill="#795548"/> <!-- Tree trunk -->
-  <path d="M10,70 C10,63 18,60 25,70" fill="#388e3c"/> <!-- Tree top -->
+  <!-- Apple -->
+  <circle cx="80" cy="150" r="15" fill="#d32f2f" />
+  <path d="M80,135 Q85,130 90,135" stroke="#8bc34a" stroke-width="3" fill="none" />
   
-  <path d="M80,80 L80,85 L83,85 L83,80 Z" fill="#795548"/> <!-- Mushroom stem -->
-  <path d="M77,80 C77,77 83,77 86,80" fill="#ef5350" stroke="#c62828" stroke-width="1"/> <!-- Mushroom cap -->
+  <!-- Level Markers -->
+  <rect x="35" y="60" width="40" height="20" rx="5" fill="#ffca28" />
+  <text x="55" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">1</text>
   
-  <!-- Adventure Elements -->
-  <circle cx="30" cy="85" r="3" fill="#ffd700"/> <!-- Gold coin -->
-  <circle cx="40" cy="85" r="3" fill="#ffd700"/> <!-- Gold coin -->
+  <rect x="85" y="60" width="40" height="20" rx="5" fill="#ffca28" />
+  <text x="105" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">2</text>
   
-  <!-- Game Title Elements -->
-  <path d="M50,12 L53,18 L60,18 L55,23 L57,30 L50,26 L43,30 L45,23 L40,18 L47,18 Z" fill="#ffeb3b"/> <!-- Star -->
+  <rect x="135" y="60" width="40" height="20" rx="5" fill="#ffca28" />
+  <text x="155" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">3</text>
+  
+  <rect x="185" y="60" width="40" height="20" rx="5" fill="#ffca28" />
+  <text x="205" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">...</text>
+  
+  <rect x="235" y="60" width="40" height="20" rx="5" fill="#ffca28" />
+  <text x="255" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#333">100</text>
+  
+  <!-- Game Title -->
+  <text x="150" y="250" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="white">SNAKES ADVENTURE</text>
 </svg>

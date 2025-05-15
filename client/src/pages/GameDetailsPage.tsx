@@ -69,11 +69,24 @@ export default function GameDetailsPage() {
   };
 
   const handlePlay = async () => {
-    setIsPlaying(true);
-    try {
-      await apiRequest('POST', `/api/games/${id}/play`, null);
-    } catch (error) {
-      console.error('Error incrementing game plays:', error);
+    // Check if the game has an external URL
+    if (game.externalUrl) {
+      // Increment play count before opening the external URL
+      try {
+        await apiRequest('POST', `/api/games/${id}/play`, null);
+        // Open the external game in a new tab
+        window.open(game.externalUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        console.error('Error incrementing game plays:', error);
+      }
+    } else {
+      // Regular internal game
+      setIsPlaying(true);
+      try {
+        await apiRequest('POST', `/api/games/${id}/play`, null);
+      } catch (error) {
+        console.error('Error incrementing game plays:', error);
+      }
     }
   };
 
