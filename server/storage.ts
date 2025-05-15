@@ -348,7 +348,16 @@ export class MemStorage implements IStorage {
     const game = this.games.get(id);
     if (!game) return undefined;
     
-    const updatedGame = { ...game, plays: game.plays + 1 };
+    const updatedGame = { ...game, plays: (game.plays || 0) + 1 };
+    this.games.set(id, updatedGame);
+    return updatedGame;
+  }
+  
+  async updateGame(id: number, data: Partial<Game>): Promise<Game | undefined> {
+    const game = this.games.get(id);
+    if (!game) return undefined;
+    
+    const updatedGame = { ...game, ...data };
     this.games.set(id, updatedGame);
     return updatedGame;
   }

@@ -246,7 +246,7 @@ function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: 
                     <FormLabel>Category</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      defaultValue={field.value ? field.value.toString() : undefined}
+                      value={field.value ? field.value.toString() : ""}
                     >
                       <FormControl>
                         <SelectTrigger>
