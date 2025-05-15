@@ -112,17 +112,39 @@ export default function GameDetailsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="overflow-hidden">
-              <div className="h-[60vh] bg-muted relative">
+              <div className="h-[80vh] bg-muted relative">
                 {isPlaying ? (
                   <div className="w-full h-full flex items-center justify-center bg-black">
-                    <iframe 
-                      src={game.externalUrl ? game.externalUrl : `/game-frame/${id}`} 
-                      className="w-full h-full border-0"
-                      title={`Play ${game.title}`}
-                      sandbox={game.externalUrl ? "allow-scripts allow-same-origin allow-popups allow-forms" : ""}
-                      referrerPolicy="no-referrer-when-downgrade"
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    ></iframe>
+                    <div className="game-frame-container relative w-full h-full">
+                      <iframe 
+                        src={game.externalUrl ? game.externalUrl : `/game-frame/${id}`} 
+                        className="w-full h-full border-0 absolute inset-0"
+                        title={`Play ${game.title}`}
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-orientation-lock allow-pointer-lock"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allow="accelerometer; autoplay; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi; payment; picture-in-picture"
+                      ></iframe>
+                      
+                      {/* Maximize button */}
+                      <button 
+                        onClick={() => {
+                          const iframe = document.querySelector('iframe');
+                          if (iframe) {
+                            if (document.fullscreenElement) {
+                              document.exitFullscreen();
+                            } else {
+                              iframe.requestFullscreen();
+                            }
+                          }
+                        }}
+                        className="absolute top-4 right-4 bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 z-10"
+                        title="Toggle fullscreen"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="relative w-full h-full">

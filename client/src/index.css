@@ -151,3 +151,47 @@
 .hero-overlay {
   @apply absolute inset-0 bg-dark bg-opacity-60;
 }
+
+/* Game iframe container styles */
+.game-frame-container {
+  @apply overflow-hidden;
+}
+
+.game-frame-container iframe {
+  @apply w-full h-full bg-black border-0;
+  aspect-ratio: 16/9;
+  max-height: 80vh;
+}
+
+/* Responsive game container */
+@media (max-width: 640px) {
+  .game-frame-container iframe {
+    aspect-ratio: 4/3;
+  }
+}
+
+/* Fix for specific games */
+.game-frame-container iframe[src*="snake2k25.netlify.app"] {
+  @apply bg-green-950;
+  min-height: 600px;
+}
+
+.game-frame-container iframe[src*="taiarjxn.manus.space"] {
+  @apply bg-blue-950;
+  min-height: 600px;
+}
+
+.game-frame-container iframe[src*="play2048"] {
+  @apply bg-amber-50;
+  min-height: 600px;
+}
+
+.game-frame-container iframe[src*="pacman"] {
+  @apply bg-black;
+  min-height: 600px;
+}
+
+.game-frame-container iframe[src*="tetris"] {
+  @apply bg-blue-900;
+  min-height: 640px;
+}
