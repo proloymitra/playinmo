@@ -3,7 +3,8 @@ import {
   games, type Game, type InsertGame,
   gameCategories, type GameCategory, type InsertGameCategory,
   gameScores, type GameScore, type InsertGameScore,
-  chatMessages, type ChatMessage, type InsertChatMessage
+  chatMessages, type ChatMessage, type InsertChatMessage,
+  gameReviews, type GameReview, type InsertGameReview
 } from "@shared/schema";
 
 export interface IStorage {

@@ -104,6 +104,29 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   message: true,
 });
 
+// Game reviews table
+export const gameReviews = pgTable("game_reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  gameId: integer("game_id").notNull(),
+  rating: integer("rating").notNull(), // Rating from 1-5
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userGameIdx: index("IDX_game_reviews_user_game").on(table.userId, table.gameId),
+    gameIdx: index("IDX_game_reviews_game").on(table.gameId),
+  };
+});
+
+export const insertGameReviewSchema = createInsertSchema(gameReviews).pick({
+  userId: true,
+  gameId: true,
+  rating: true,
+  comment: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
@@ -118,3 +141,6 @@ export type InsertGameScore = z.infer<typeof insertGameScoreSchema>;
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+export type GameReview = typeof gameReviews.$inferSelect;
+export type InsertGameReview = z.infer<typeof insertGameReviewSchema>;
