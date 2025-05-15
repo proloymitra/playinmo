@@ -51,9 +51,8 @@ export default function GameReviews({ gameId }: GameReviewsProps) {
         setReviewComment(data.comment || '');
       }
     },
-    onError: () => {
-      // If 404, that's fine - user hasn't reviewed yet
-    }
+    // Don't show errors when user hasn't reviewed yet
+    retry: false
   });
 
   // Submit or update review
@@ -64,10 +63,7 @@ export default function GameReviews({ gameId }: GameReviewsProps) {
       rating: number; 
       comment?: string; 
     }) => {
-      return apiRequest('/api/reviews', {
-        method: 'POST',
-        body: JSON.stringify(newReview),
-      });
+      return apiRequest('POST', '/api/reviews', JSON.stringify(newReview));
     },
     onSuccess: () => {
       toast({

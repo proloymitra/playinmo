@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, StarHalf, Trophy, Users, BarChart3 } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+import GameReviews from "@/components/GameReviews";
 
 export default function GameDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -228,6 +229,7 @@ export default function GameDetailsPage() {
                     <TabsTrigger value="about">About</TabsTrigger>
                     <TabsTrigger value="how-to-play">How to Play</TabsTrigger>
                     <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                    <TabsTrigger value="reviews">Reviews</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="about" className="pt-4">
@@ -344,6 +346,10 @@ export default function GameDetailsPage() {
                         No scores recorded yet. Be the first to play and set a high score!
                       </div>
                     )}
+                  </TabsContent>
+                  
+                  <TabsContent value="reviews" className="pt-4">
+                    <GameReviews gameId={numId} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
