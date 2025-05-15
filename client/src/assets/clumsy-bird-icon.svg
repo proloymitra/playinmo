@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="300" rx="20" fill="#70c5ce" />
+  
+  <!-- Clouds -->
+  <ellipse cx="50" cy="60" rx="25" ry="15" fill="white" opacity="0.9" />
+  <ellipse cx="70" cy="55" rx="20" ry="18" fill="white" opacity="0.9" />
+  <ellipse cx="85" cy="65" rx="18" ry="12" fill="white" opacity="0.9" />
+  
+  <ellipse cx="200" cy="40" rx="30" ry="20" fill="white" opacity="0.8" />
+  <ellipse cx="225" cy="35" rx="25" ry="15" fill="white" opacity="0.8" />
+  <ellipse cx="240" cy="45" rx="20" ry="12" fill="white" opacity="0.8" />
+  
+  <ellipse cx="130" cy="90" rx="25" ry="15" fill="white" opacity="0.7" />
+  <ellipse cx="150" cy="85" rx="20" ry="12" fill="white" opacity="0.7" />
+  
+  <!-- Ground -->
+  <rect x="0" y="240" width="300" height="60" fill="#ded895" />
+  <path d="M0,240 C30,230 60,250 90,240 C120,230 150,250 180,240 C210,230 240,250 270,240 L300,240 L300,250 L0,250 Z" fill="#d0c675" />
+  
+  <!-- Pipes -->
+  <g transform="translate(230, 180)">
+    <!-- Pipe down -->
+    <rect x="-20" y="-120" width="40" height="120" fill="#73c990" />
+    <rect x="-25" y="-120" width="50" height="15" rx="3" fill="#4aa552" />
+  </g>
+  
+  <g transform="translate(120, 290)">
+    <!-- Pipe up -->
+    <rect x="-20" y="-100" width="40" height="100" fill="#73c990" />
+    <rect x="-25" y="-100" width="50" height="15" rx="3" fill="#4aa552" />
+  </g>
+  
+  <!-- Bird Character -->
+  <g transform="translate(90, 150)">
+    <!-- Bird body -->
+    <ellipse cx="0" cy="0" rx="25" ry="20" fill="#f8a724" />
+    
+    <!-- Wings -->
+    <ellipse cx="-15" cy="5" rx="15" ry="10" fill="#f8c330" transform="rotate(-15)" />
+    
+    <!-- Eyes -->
+    <circle cx="15" cy="-5" r="8" fill="white" />
+    <circle cx="17" cy="-5" r="4" fill="black" />
+    <circle cx="18" cy="-7" r="1.5" fill="white" />
+    
+    <!-- Beak -->
+    <path d="M20,-2 L35,0 L20,5 Z" fill="#f15b44" />
+    
+    <!-- Eyebrows - confused look -->
+    <path d="M8,-12 L20,-14" stroke="#333" stroke-width="2" stroke-linecap="round" />
+  </g>
+  
+  <!-- Score Display -->
+  <rect x="10" y="10" width="100" height="30" rx="5" fill="rgba(0,0,0,0.3)" />
+  <text x="60" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="white">SCORE: 8</text>
+  
+  <!-- Game Over Message (hidden by default) -->
+  <g opacity="0">
+    <rect x="50" y="120" width="200" height="80" rx="10" fill="rgba(0,0,0,0.7)" />
+    <text x="150" y="160" font-family="Arial, sans-serif" font-weight="bold" font-size="24" text-anchor="middle" fill="white">GAME OVER</text>
+    <text x="150" y="185" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white">TAP TO RESTART</text>
+  </g>
+  
+  <!-- Title -->
+  <rect x="20" y="260" width="260" height="30" rx="5" fill="rgba(0,0,0,0.3)" />
+  <text x="150" y="282" font-family="Arial, sans-serif" font-weight="bold" font-size="20" text-anchor="middle" fill="white">CLUMSY BIRD</text>
+</svg>

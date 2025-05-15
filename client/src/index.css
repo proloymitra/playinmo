@@ -201,17 +201,17 @@
   min-height: 640px;
 }
 
-.game-frame-container iframe[src*="crossy-road"], .game-frame-container iframe[src*="crossyroad"] {
-  @apply bg-teal-100;
+.game-frame-container iframe[src*="hextris"] {
+  @apply bg-gray-900;
   min-height: 600px;
 }
 
-.game-frame-container iframe[src*="monster-match"], .game-frame-container iframe[src*="monstermatch"] {
-  @apply bg-indigo-900;
+.game-frame-container iframe[src*="clumsy-bird"], .game-frame-container iframe[src*="clumsybird"] {
+  @apply bg-sky-400;
   min-height: 600px;
 }
 
-.game-frame-container iframe[src*="tower-defense"], .game-frame-container iframe[src*="towerdefense"] {
-  @apply bg-gray-800;
+.game-frame-container iframe[src*="chess"], .game-frame-container iframe[src*="simple-chess"] {
+  @apply bg-gray-100;
   min-height: 600px;
 }
