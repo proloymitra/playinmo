@@ -26,8 +26,52 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
+  async updateUserOTP(userId: number, otpSecret: string, otpExpiry: Date): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        otpSecret,
+        otpExpiry
+      })
+      .where(eq(users.id, userId))
+      .returning();
+      
+    return user;
+  }
+  
+  async verifyOTP(email: string, otpSecret: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.email, email),
+          eq(users.otpSecret, otpSecret),
+          sql`${users.otpExpiry} > now()`
+        )
+      );
+    
+    if (user) {
+      // Clear the OTP after successful verification
+      await db
+        .update(users)
+        .set({ 
+          otpSecret: null,
+          otpExpiry: null
+        })
+        .where(eq(users.id, user.id));
+    }
+    
     return user;
   }
   

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { configureSession, configurePassport, isAuthenticated } from "./auth";
@@ -9,13 +9,44 @@ import {
   insertGameCategorySchema,
   insertGameScoreSchema,
   insertChatMessageSchema,
-  insertGameReviewSchema
+  insertGameReviewSchema,
+  type User
 } from "@shared/schema";
+import { generateOTP, generateSecret, getOTPExpiry, sendOTPEmail } from "./emailService";
+
+// Extend Express Request type to include user property
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      [key: string]: any;
+    }
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure authentication
   configureSession(app);
   configurePassport(app);
+  
+  // Admin middleware to check for admin role
+  const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
+      
+      next();
+    } catch (error) {
+      console.error("Admin middleware error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
   // === Games ===
   // Get all games
   app.get("/api/games", async (req, res) => {
@@ -379,6 +410,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Review deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete review" });
+    }
+  });
+
+  // === Admin CMS routes ===
+  
+  // Request OTP login
+  app.post("/api/admin/request-otp", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.isAdmin) {
+        // Don't reveal whether user exists or not for security
+        return res.status(200).json({ message: "If your email exists in our system, you will receive an OTP" });
+      }
+      
+      // Generate OTP
+      const otp = generateOTP();
+      const otpSecret = generateSecret();
+      const otpExpiry = getOTPExpiry();
+      
+      // Update user with OTP details
+      await storage.updateUserOTP(user.id, otpSecret, otpExpiry);
+      
+      // Send OTP email
+      const emailSent = await sendOTPEmail(email, otp);
+      
+      if (!emailSent) {
+        return res.status(500).json({ message: "Failed to send OTP email" });
+      }
+      
+      res.json({ 
+        message: "OTP has been sent to your email",
+        otpSecret // This is safe to send as it's only useful with the OTP code sent via email
+      });
+    } catch (error) {
+      console.error("Error requesting OTP:", error);
+      res.status(500).json({ message: "Failed to process OTP request" });
+    }
+  });
+  
+  // Verify OTP and login
+  app.post("/api/admin/verify-otp", async (req, res) => {
+    try {
+      const { email, otp, otpSecret } = req.body;
+      
+      if (!email || !otp || !otpSecret) {
+        return res.status(400).json({ message: "Email, OTP and OTP secret are required" });
+      }
+      
+      // Verify OTP
+      const user = await storage.verifyOTP(email, otpSecret);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid or expired OTP" });
+      }
+      
+      // Log in the user
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "Failed to login" });
+        }
+        
+        // Don't return sensitive information
+        const { password, otpSecret: secret, otpExpiry, ...safeUser } = user;
+        return res.json({ user: safeUser });
+      });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ message: "Failed to verify OTP" });
+    }
+  });
+  
+  // Admin dashboard data
+  app.get("/api/admin/dashboard", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // Get counts
+      const games = await storage.getGames();
+      const categories = await storage.getGameCategories();
+      
+      // TODO: Add more dashboard data as needed
+      
+      res.json({
+        counts: {
+          games: games.length,
+          categories: categories.length
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching admin dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+  
+  // Create game (admin only)
+  app.post("/api/admin/games", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const gameData = insertGameSchema.parse(req.body);
+      const game = await storage.createGame(gameData);
+      res.status(201).json(game);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid game data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create game" });
+    }
+  });
+  
+  // Create category (admin only)
+  app.post("/api/admin/categories", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categoryData = insertGameCategorySchema.parse(req.body);
+      const category = await storage.createGameCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+  
+  // Get admin user (used to check if user is admin)
+  app.get("/api/admin/user", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't return sensitive information
+      const { password, otpSecret, otpExpiry, ...safeUser } = user;
+      
+      res.json({
+        ...safeUser,
+        isAdmin: !!user.isAdmin
+      });
+    } catch (error) {
+      console.error("Error fetching admin user:", error);
+      res.status(500).json({ message: "Failed to fetch user data" });
     }
   });
 
