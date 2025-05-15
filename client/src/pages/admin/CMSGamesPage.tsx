@@ -576,7 +576,7 @@ export default function CMSGamesPage() {
     });
     
     // Handle form submission
-    function onSubmit(data: any) {
+    function onSubmit(data: GameFormValues) {
       if (!game) return;
       
       const updateData = {
