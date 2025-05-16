@@ -68,7 +68,13 @@ export const games = pgTable("games", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertGameSchema = createInsertSchema(games).pick({
+export const insertGameSchema = createInsertSchema(games, {
+  releaseDate: z.coerce.date(),
+  plays: z.number().optional().default(0),
+  rating: z.number().optional().default(0),
+  isFeatured: z.boolean().optional().default(false),
+  externalUrl: z.string().optional().nullable(),
+}).pick({
   title: true, 
   description: true, 
   imageUrl: true, 

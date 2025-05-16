@@ -264,9 +264,11 @@ export default function CMSGamesPage() {
         categoryId: parseInt(categoryId) || 1,
         developer: developer || 'Unknown',
         externalUrl,
-        instructions,
+        instructions: instructions || 'Use your mouse or touch to play the game',
         isFeatured: isFeatured || false,
-        releaseDate: new Date().toISOString().split('T')[0]
+        releaseDate: new Date(),
+        plays: 0,
+        rating: 0
       };
       
       // Submit the form data

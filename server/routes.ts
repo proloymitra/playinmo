@@ -801,11 +801,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create game (admin only)
   app.post("/api/admin/games", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const gameData = insertGameSchema.parse(req.body);
+      console.log("Received game data:", req.body);
+      
+      // Pre-format some fields to ensure they match the schema
+      const formattedData = {
+        ...req.body,
+        categoryId: typeof req.body.categoryId === 'string' ? 
+          parseInt(req.body.categoryId) : req.body.categoryId,
+        plays: req.body.plays || 0,
+        rating: req.body.rating || 0,
+        isFeatured: req.body.isFeatured === "true" ? true : 
+          (typeof req.body.isFeatured === 'boolean' ? req.body.isFeatured : false)
+      };
+      
+      // Parse the data through schema validation
+      const gameData = insertGameSchema.parse(formattedData);
+      console.log("Validated game data:", gameData);
+      
+      // Create the game
       const game = await storage.createGame(gameData);
+      console.log("Created game:", game);
+      
       res.status(201).json(game);
     } catch (error) {
+      console.error("Error creating game:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid game data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create game" });
@@ -815,6 +836,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Handle HTML package uploads
   app.post("/api/admin/games/upload", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      console.log("Received HTML game upload data:", req.body);
+      
       // Create a game record with the provided data
       const gameData = {
         title: req.body.title || "HTML Game",
@@ -834,10 +857,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a production app, we would save the uploaded HTML/ZIP file here
       // and handle file extraction and storage
 
-      // Create game in database
-      const game = await storage.createGame(gameData);
-      console.log("HTML game created:", game);
-      res.status(201).json(game);
+      try {
+        // Validate and parse the game data
+        const validatedData = insertGameSchema.parse(gameData);
+        
+        // Create game in database
+        const game = await storage.createGame(validatedData);
+        console.log("HTML game created:", game);
+        res.status(201).json(game);
+      } catch (validationError) {
+        console.error("Validation error:", validationError);
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Invalid game data", 
+            errors: validationError.errors 
+          });
+        }
+        throw validationError; // Re-throw for the outer catch block
+      }
     } catch (error) {
       console.error("Error uploading game package:", error);
       res.status(500).json({ message: "Failed to upload game package" });
