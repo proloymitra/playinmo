@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Gamepad } from "lucide-react";
 import { FaFacebookF, FaTwitter, FaInstagram, FaDiscord } from 'react-icons/fa';
+import logoImage from '@/assets/plainmo_logo1.png';
 
 export default function Footer() {
   return (
@@ -12,7 +13,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center mb-4">
               <img 
-                src="/plainmo_logo1.png" 
+                src={logoImage} 
                 alt="PlayinMO Logo" 
                 className="w-10 h-10 mr-2" 
               />
