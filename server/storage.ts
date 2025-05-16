@@ -4,7 +4,8 @@ import {
   gameCategories, type GameCategory, type InsertGameCategory,
   gameScores, type GameScore, type InsertGameScore,
   chatMessages, type ChatMessage, type InsertChatMessage,
-  gameReviews, type GameReview, type InsertGameReview
+  gameReviews, type GameReview, type InsertGameReview,
+  websiteContent, type WebsiteContent, type InsertWebsiteContent
 } from "@shared/schema";
 
 export interface IStorage {
