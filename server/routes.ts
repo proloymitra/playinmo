@@ -758,6 +758,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user data" });
     }
   });
+  
+  // Website Content Management API Routes
+  // Get all website content items
+  app.get("/api/admin/website-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const content = await storage.getWebsiteContent();
+      res.json(content);
+    } catch (error) {
+      console.error("Error getting website content:", error);
+      res.status(500).json({ message: "Error getting website content" });
+    }
+  });
+  
+  // Get website content by section
+  app.get("/api/admin/website-content/section/:section", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { section } = req.params;
+      const content = await storage.getWebsiteContentBySection(section);
+      res.json(content);
+    } catch (error) {
+      console.error("Error getting website content by section:", error);
+      res.status(500).json({ message: "Error getting website content by section" });
+    }
+  });
+  
+  // Get website content item
+  app.get("/api/admin/website-content/:section/:key", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { section, key } = req.params;
+      const content = await storage.getWebsiteContentItem(section, key);
+      
+      if (!content) {
+        return res.status(404).json({ message: "Content not found" });
+      }
+      
+      res.json(content);
+    } catch (error) {
+      console.error("Error getting website content item:", error);
+      res.status(500).json({ message: "Error getting website content item" });
+    }
+  });
+  
+  // Update website content item
+  app.patch("/api/admin/website-content/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      const updateData = req.body;
+      const updated = await storage.updateWebsiteContent(id, updateData);
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Content not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating website content:", error);
+      res.status(500).json({ message: "Error updating website content" });
+    }
+  });
+  
+  // Create website content item
+  app.post("/api/admin/website-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const contentData = req.body;
+      const created = await storage.createWebsiteContent(contentData);
+      res.status(201).json(created);
+    } catch (error) {
+      console.error("Error creating website content:", error);
+      res.status(500).json({ message: "Error creating website content" });
+    }
+  });
+  
+  // Delete website content item
+  app.delete("/api/admin/website-content/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      // First check if the item exists
+      const [item] = await db
+        .select()
+        .from(websiteContent)
+        .where(eq(websiteContent.id, id));
+      
+      if (!item) {
+        return res.status(404).json({ message: "Content not found" });
+      }
+      
+      // Delete the content item (using direct query for consistency with other API endpoints)
+      await storage.deleteWebsiteContent(id);
+      
+      res.json({ message: "Content deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting website content:", error);
+      res.status(500).json({ message: "Error deleting website content" });
+    }
+  });
+  
+  // For backward compatibility - keep old endpoints
+  app.get("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const siteContent = await storage.getSiteContent();
+      res.json(siteContent);
+    } catch (error) {
+      console.error("Error getting site content:", error);
+      res.status(500).json({ message: "Error getting site content" });
+    }
+  });
+  
+  // For backward compatibility - keep old endpoints
+  app.patch("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const updateData = req.body;
+      const updatedContent = await storage.updateSiteContent(updateData);
+      res.json(updatedContent);
+    } catch (error) {
+      console.error("Error updating site content:", error);
+      res.status(500).json({ message: "Error updating site content" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

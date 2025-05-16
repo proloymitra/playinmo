@@ -59,6 +59,7 @@ export interface IStorage {
   getWebsiteContentItem(section: string, key: string): Promise<WebsiteContent | undefined>;
   updateWebsiteContent(id: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined>;
   createWebsiteContent(content: InsertWebsiteContent): Promise<WebsiteContent>;
+  deleteWebsiteContent(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -80,12 +81,16 @@ export class MemStorage implements IStorage {
     this.categories = new Map();
     this.scores = new Map();
     this.messages = new Map();
+    this.reviews = new Map();
+    this.contents = new Map();
     
     this.userIdCounter = 1;
     this.gameIdCounter = 1;
     this.categoryIdCounter = 1;
     this.scoreIdCounter = 1;
     this.messageIdCounter = 1;
+    this.reviewIdCounter = 1;
+    this.contentIdCounter = 1;
     
     // Initialize with some data
     this.initializeData();
