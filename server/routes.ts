@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { configureSession, configurePassport, isAuthenticated } from "./auth";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import {
   insertUserSchema,
   insertGameSchema,
@@ -32,6 +35,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure authentication
   configureSession(app);
   configurePassport(app);
+  
+  // Create uploads directory if it doesn't exist
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  
+  // Configure multer for image uploads
+  const uploadStorage = multer.diskStorage({
+    destination: (req: any, file: any, cb: any) => {
+      cb(null, uploadDir);
+    },
+    filename: (req: any, file: any, cb: any) => {
+      // Create a unique filename with timestamp and original extension
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      cb(null, 'game-icon-' + uniqueSuffix + ext);
+    }
+  });
+  
+  // Set up the upload middleware
+  const imageUpload = multer({ 
+    storage: uploadStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB max file size
+    },
+    fileFilter: (req: any, file: any, cb: any) => {
+      // Accept only image files
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF and WebP images are allowed.'));
+      }
+    }
+  });
   
   // Admin middleware to check for admin role
   const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
@@ -995,6 +1034,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating website content:", error);
       res.status(500).json({ message: "Error creating website content" });
+    }
+  });
+  
+  // Image upload endpoint for game icons
+  app.post("/api/admin/upload-image", isAuthenticated, isAdmin, imageUpload.single('image'), async (req: any, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      // Get the file path relative to public directory
+      const relativePath = '/uploads/' + req.file.filename;
+      
+      // Return the URL for the uploaded image
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const imageUrl = baseUrl + relativePath;
+      
+      console.log(`Image uploaded successfully: ${imageUrl}`);
+      
+      res.status(200).json({ 
+        message: "Image uploaded successfully",
+        imageUrl 
+      });
+    } catch (error) {
+      console.error("Error handling image upload:", error);
+      res.status(500).json({ message: "Failed to upload image" });
     }
   });
   

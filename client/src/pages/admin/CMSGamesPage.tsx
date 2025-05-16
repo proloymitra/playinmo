@@ -687,25 +687,92 @@ export default function CMSGamesPage() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Image URL</label>
-                <div className="flex gap-4">
-                  <div className="flex-grow">
-                    <Input 
-                      id="edit-game-image"
-                      defaultValue={gameToEdit.imageUrl} 
-                      onChange={(e) => setImagePreview(e.target.value)}
-                    />
+                <label className="text-sm font-medium">Game Icon</label>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="md:col-span-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Input 
+                          id="edit-game-image"
+                          defaultValue={gameToEdit.imageUrl} 
+                          onChange={(e) => setImagePreview(e.target.value)}
+                          placeholder="Enter image URL or upload a file"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="icon-upload" className="cursor-pointer">
+                          <div className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90">
+                            Upload
+                          </div>
+                          <input
+                            type="file"
+                            id="icon-upload"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Create a temporary URL for preview
+                                const tempUrl = URL.createObjectURL(file);
+                                setImagePreview(tempUrl);
+                                
+                                // Create a FormData object for upload
+                                const formData = new FormData();
+                                formData.append('image', file);
+                                
+                                // Upload the image
+                                fetch('/api/admin/upload-image', {
+                                  method: 'POST',
+                                  body: formData,
+                                  credentials: 'include'
+                                })
+                                .then(response => {
+                                  if (!response.ok) {
+                                    throw new Error('Image upload failed');
+                                  }
+                                  return response.json();
+                                })
+                                .then(data => {
+                                  // Set the image URL input field with the new URL
+                                  const imageInput = document.getElementById('edit-game-image') as HTMLInputElement;
+                                  if (imageInput && data.imageUrl) {
+                                    imageInput.value = data.imageUrl;
+                                    toast({
+                                      title: "Success",
+                                      description: "Image uploaded successfully"
+                                    });
+                                  }
+                                })
+                                .catch(error => {
+                                  console.error('Error uploading image:', error);
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Error",
+                                    description: "Failed to upload image. Please try again."
+                                  });
+                                });
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Enter a URL or upload an image file (recommended size: 300x300px)
+                    </p>
                   </div>
-                  <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200">
-                    <img 
-                      src={imagePreview || gameToEdit.imageUrl} 
-                      alt="Game icon preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://placehold.co/300x300?text=Preview';
-                      }}
-                    />
+                  <div className="md:col-span-2">
+                    <div className="h-32 w-full md:h-full rounded-md overflow-hidden border border-gray-200 bg-gray-50">
+                      <img 
+                        src={imagePreview || gameToEdit.imageUrl} 
+                        alt="Game icon preview"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://placehold.co/300x300?text=Preview';
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
