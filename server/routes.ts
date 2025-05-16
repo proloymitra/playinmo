@@ -574,7 +574,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid game ID" });
       }
       
+      // Get the update data from request body
       const updateData = req.body;
+      
+      // Make sure releaseDate is a proper Date object
+      if (updateData.releaseDate) {
+        updateData.releaseDate = new Date();
+      }
+      
+      console.log("Updating game with data:", updateData);
+      
+      // Update the game
       const updatedGame = await storage.updateGame(gameId, updateData);
       if (!updatedGame) {
         return res.status(404).json({ message: "Game not found" });

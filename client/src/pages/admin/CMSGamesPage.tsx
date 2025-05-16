@@ -884,7 +884,7 @@ export default function CMSGamesPage() {
                       plays: gameToEdit.plays || 0,
                       rating: gameToEdit.rating || 0,
                       // Include release date (required by the schema)
-                      releaseDate: gameToEdit.releaseDate || new Date().toISOString(),
+                      releaseDate: new Date(),
                     }),
                     credentials: 'include'
                   })
