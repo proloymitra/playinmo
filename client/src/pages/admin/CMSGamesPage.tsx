@@ -744,8 +744,11 @@ export default function CMSGamesPage() {
                                   if (imageInput && data.imageUrl) {
                                     imageInput.value = data.imageUrl;
                                     
-                                    // Update image preview with the actual URL from server
-                                    setImagePreview(data.imageUrl);
+                                    // Add a timestamp to prevent caching issues
+                                    const timestampedUrl = `${data.imageUrl}?t=${Date.now()}`;
+                                    
+                                    // Update image preview with the timestamped URL from server
+                                    setImagePreview(timestampedUrl);
                                     
                                     // Update the game object in state so it's available when saving
                                     if (gameToEdit) {
