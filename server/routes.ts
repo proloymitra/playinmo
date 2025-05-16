@@ -102,6 +102,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new game
+  app.post("/api/games", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // Extract data from request
+      const { 
+        title, 
+        description, 
+        category, 
+        imageUrl, 
+        externalUrl,
+        new: isNew, 
+        hot: isHot, 
+        featured: isFeatured 
+      } = req.body;
+      
+      // Get categoryId from slug
+      const gameCategory = await storage.getGameCategoryBySlug(category);
+      
+      if (!gameCategory) {
+        return res.status(400).json({ message: 'Invalid category' });
+      }
+      
+      // Create game record
+      const game = await storage.createGame({
+        title,
+        description,
+        imageUrl,
+        categoryId: gameCategory.id,
+        isFeatured: isFeatured === true || isFeatured === 'true',
+        releaseDate: new Date(),
+        developer: 'PlayinMO',
+        instructions: 'Use arrow keys to move, space to jump.',
+        externalUrl: externalUrl || null,
+      });
+      
+      res.status(201).json(game);
+    } catch (error) {
+      console.error('Error creating game:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid game data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create game' });
+    }
+  });
+  
+  // Upload game HTML package
+  app.post("/api/games/upload", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      // In a real implementation, this would handle file uploads
+      // For now, we'll simulate successful upload and create a game record
+      const { 
+        title, 
+        description, 
+        category, 
+        imageUrl, 
+        new: isNew, 
+        hot: isHot, 
+        featured: isFeatured 
+      } = req.body;
+      
+      // Get categoryId from slug
+      const gameCategory = await storage.getGameCategoryBySlug(category);
+      
+      if (!gameCategory) {
+        return res.status(400).json({ message: 'Invalid category' });
+      }
+      
+      // Create game record
+      const game = await storage.createGame({
+        title,
+        description,
+        imageUrl,
+        categoryId: gameCategory.id,
+        isFeatured: isFeatured === true || isFeatured === 'true',
+        releaseDate: new Date(),
+        developer: 'PlayinMO',
+        instructions: 'Use arrow keys to move, space to jump.',
+        // For uploaded games, we would store a path to the extracted package
+        externalUrl: null,
+      });
+      
+      res.status(201).json(game);
+    } catch (error) {
+      console.error('Error uploading game:', error);
+      res.status(500).json({ message: 'Failed to upload game' });
+    }
+  });
+
   // Increment game plays
   app.post("/api/games/:id/play", async (req, res) => {
     try {

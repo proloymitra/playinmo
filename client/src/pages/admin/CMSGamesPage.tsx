@@ -517,7 +517,8 @@ function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
   // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/admin/games', {
+      // Use the correct API endpoint
+      const response = await fetch('/api/games', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -551,22 +552,68 @@ function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
   });
   
   function onSubmit(data: GameFormValues) {
-    // Convert data for the API
-    const submitData = {
-      ...data,
-      categoryId: parseInt(data.categoryId),
-      isFeatured: !!data.isFeatured,
-      releaseDate: new Date(data.releaseDate),
-    };
-    
-    // Make sure only the relevant URL field is sent based on game type
+    // For URL-based games
     if (data.gameType === 'url') {
-      delete submitData.htmlPackage;
-    } else {
-      delete submitData.externalUrl;
+      // Convert data for the API
+      const submitData = {
+        title: data.title,
+        description: data.description,
+        category: data.categoryId, // Send category ID as the slug
+        imageUrl: data.imageUrl,
+        externalUrl: data.externalUrl,
+        developer: data.developer,
+        instructions: data.instructions,
+        featured: !!data.isFeatured
+      };
+      
+      createGameMutation.mutate(submitData);
+    } 
+    // For HTML package uploads
+    else {
+      // We'd need to handle file upload with FormData
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('description', data.description);
+      formData.append('category', data.categoryId);
+      formData.append('imageUrl', data.imageUrl);
+      formData.append('developer', data.developer);
+      formData.append('instructions', data.instructions);
+      formData.append('featured', data.isFeatured ? 'true' : 'false');
+      
+      // If there's an HTML package as a file input, append it
+      if (data.htmlPackage && typeof data.htmlPackage === 'object') {
+        formData.append('htmlPackage', data.htmlPackage);
+      }
+      
+      // Use fetch directly for FormData upload
+      fetch('/api/games/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to upload HTML game package');
+        }
+        return response.json();
+      })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/games/featured'] });
+        toast({
+          title: "Success",
+          description: "Game created successfully",
+        });
+        onClose();
+        form.reset(defaultValues);
+      })
+      .catch(error => {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: `Failed to upload game: ${error.message}`,
+        });
+      });
     }
-    
-    createGameMutation.mutate(submitData);
   }
   
   return (
