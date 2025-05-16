@@ -475,6 +475,7 @@ type GameFormValues = z.infer<typeof gameFormSchema>;
 
 // Game Create Dialog
 function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  if (!isOpen) return null;
   const queryClient = useQueryClient();
   const [gameType, setGameType] = useState<'url' | 'html'>('url');
   
@@ -519,7 +520,7 @@ function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
     mutationFn: async (data: any) => {
       console.log("Creating game with data:", data);
       // Use the correct API endpoint
-      const response = await fetch('/api/games', {
+      const response = await fetch('/api/admin/games', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1633,12 +1634,10 @@ export default function CMSGamesPage() {
       </Card>
       
       {/* New Game Dialog */}
-      {isNewGameDialogOpen && (
-        <GameCreateDialog
-          isOpen={isNewGameDialogOpen}
-          onClose={() => setIsNewGameDialogOpen(false)}
-        />
-      )}
+      <GameCreateDialog
+        isOpen={isNewGameDialogOpen}
+        onClose={() => setIsNewGameDialogOpen(false)}
+      />
       
       {/* Edit Game Dialog */}
       {gameToEdit && (
