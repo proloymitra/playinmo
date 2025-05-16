@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center mb-4">
               <img 
-                src="@/assets/plainmo_logo1.png" 
+                src="/plainmo_logo1.png" 
                 alt="PlayinMO Logo" 
                 className="w-10 h-10 mr-2" 
               />
