@@ -1223,6 +1223,24 @@ export default function CMSGamesPage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* New Game Dialog */}
+      <NewGameDialog
+        isOpen={isNewGameDialogOpen}
+        onClose={() => setIsNewGameDialogOpen(false)}
+      />
+      
+      {/* Edit Game Dialog */}
+      {gameToEdit && (
+        <GameEditDialog
+          game={gameToEdit}
+          isOpen={isEditDialogOpen}
+          onClose={() => {
+            setGameToEdit(null);
+            setIsEditDialogOpen(false);
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }
