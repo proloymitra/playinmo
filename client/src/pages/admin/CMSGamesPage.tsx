@@ -74,6 +74,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
@@ -474,6 +475,7 @@ type GameFormValues = z.infer<typeof gameFormSchema>;
 
 // Game Create Dialog
 function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  // Return null if dialog should not be shown
   if (!isOpen) return null;
   const queryClient = useQueryClient();
   const [gameType, setGameType] = useState<'url' | 'html'>('url');
@@ -1633,10 +1635,125 @@ export default function CMSGamesPage() {
       </Card>
       
       {/* New Game Dialog */}
-      <GameCreateDialog
-        isOpen={isNewGameDialogOpen}
-        onClose={() => setIsNewGameDialogOpen(false)}
-      />
+      <Dialog open={isNewGameDialogOpen} onOpenChange={(open) => !open && setIsNewGameDialogOpen(false)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Game</DialogTitle>
+            <DialogDescription>
+              Add a new game to your platform. Fill in all required fields.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="url" onValueChange={(value) => setGameType(value as 'url' | 'html')}>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="url">External URL</TabsTrigger>
+              <TabsTrigger value="html">HTML Package</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="url" className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input id="title" placeholder="Game title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(categories || []).map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea id="description" placeholder="Game description" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">Image URL</Label>
+                  <Input id="imageUrl" placeholder="https://example.com/image.jpg" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="externalUrl">Game URL</Label>
+                  <Input id="externalUrl" placeholder="https://example.com/game" />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="isFeatured" />
+                  <Label htmlFor="isFeatured">Featured Game</Label>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="html" className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title-html">Title</Label>
+                    <Input id="title-html" placeholder="Game title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category-html">Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(categories || []).map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description-html">Description</Label>
+                  <Textarea id="description-html" placeholder="Game description" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl-html">Image URL</Label>
+                  <Input id="imageUrl-html" placeholder="https://example.com/image.jpg" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="htmlPackage">HTML Package</Label>
+                  <Input id="htmlPackage" type="file" accept=".zip,.html" />
+                  <p className="text-sm text-muted-foreground">
+                    Upload a ZIP file containing your HTML game package or a single HTML file.
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="isFeatured-html" />
+                  <Label htmlFor="isFeatured-html">Featured Game</Label>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewGameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button>Add Game</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Edit Game Dialog */}
       {gameToEdit && (
