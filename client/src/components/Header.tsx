@@ -14,6 +14,7 @@ import { Bell, Menu, Search, Gamepad } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import logoImage from "@assets/plainmo_logo1.png";
 
 type NavItemProps = {
   href: string;
@@ -71,15 +72,14 @@ export default function Header() {
               onClick={() => window.location.href = '/'}
             >
               <img 
-                src="/src/assets/plainmo_logo1.png" 
+                src={logoImage} 
                 alt="PlayinMO Logo" 
-                className="w-10 h-10 mr-2" 
+                className="h-10 mr-2" 
               />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-foreground tracking-wider">
                   Playin<span className="text-primary">MO</span>
                 </span>
-                <span className="text-xs text-muted-foreground -mt-1">your web gaming destination for Ai powered games</span>
               </div>
             </div>
           </div>
