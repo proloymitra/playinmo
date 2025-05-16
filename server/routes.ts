@@ -815,8 +815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Handle HTML package uploads
   app.post("/api/admin/games/upload", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      // For now, create a game record with the provided data
-      // In a production environment, we would handle file storage
+      // Create a game record with the provided data
       const gameData = {
         title: req.body.title || "HTML Game",
         description: req.body.description || "An HTML-based game",
@@ -825,12 +824,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         developer: req.body.developer || "Unknown",
         isFeatured: req.body.isFeatured === "true",
         instructions: req.body.instructions || "Use your mouse to play",
-        releaseDate: new Date().toISOString().split('T')[0],
-        // For HTML packages, store a local path or flag that it's a local game
-        externalUrl: "/games/html-package-" + Date.now()
+        releaseDate: new Date(),
+        rating: 0,
+        plays: 0,
+        // For HTML packages, store a local path or identifier
+        externalUrl: `/games/html-package-${Date.now()}`
       };
       
+      // In a production app, we would save the uploaded HTML/ZIP file here
+      // and handle file extraction and storage
+
+      // Create game in database
       const game = await storage.createGame(gameData);
+      console.log("HTML game created:", game);
       res.status(201).json(game);
     } catch (error) {
       console.error("Error uploading game package:", error);

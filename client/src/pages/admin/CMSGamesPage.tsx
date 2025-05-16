@@ -200,7 +200,60 @@ export default function CMSGamesPage() {
   
   // Function to handle adding a new game
   const handleAddNewGame = (formData: any) => {
-    createGameMutation.mutate(formData);
+    if (gameType === 'html' && formData.htmlFile) {
+      // For HTML uploads, we need to use FormData
+      const uploadData = new FormData();
+      uploadData.append('title', formData.title);
+      uploadData.append('description', formData.description);
+      uploadData.append('imageUrl', formData.imageUrl);
+      uploadData.append('categoryId', formData.categoryId || '1');
+      uploadData.append('developer', formData.developer || '');
+      uploadData.append('instructions', formData.instructions || '');
+      uploadData.append('isFeatured', formData.isFeatured ? 'true' : 'false');
+      uploadData.append('htmlFile', formData.htmlFile);
+      
+      // Show loading state
+      toast({
+        title: "Uploading...",
+        description: "Uploading your game package",
+      });
+      
+      // Manually handle the upload
+      fetch('/api/admin/games/upload', {
+        method: 'POST',
+        body: uploadData,
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to upload game package');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Success
+        toast({
+          title: "Success",
+          description: "Game package uploaded successfully",
+        });
+        
+        // Refresh games list
+        queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+        
+        // Close dialog
+        setIsNewGameDialogOpen(false);
+      })
+      .catch(error => {
+        // Error
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: `Failed to upload game package: ${error.message}`,
+        });
+      });
+    } else {
+      // For URL-based games, use the mutation
+      createGameMutation.mutate(formData);
+    }
   };
 
   return (
