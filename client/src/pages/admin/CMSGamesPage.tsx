@@ -661,12 +661,15 @@ export default function CMSGamesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Title</label>
-                  <Input defaultValue={gameToEdit.title} />
+                  <Input 
+                    id="edit-game-title"
+                    defaultValue={gameToEdit.title} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
                   <Select defaultValue={gameToEdit.categoryId.toString()}>
-                    <SelectTrigger>
+                    <SelectTrigger id="edit-game-category">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -683,6 +686,7 @@ export default function CMSGamesPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
                 <Textarea 
+                  id="edit-game-description"
                   defaultValue={gameToEdit.description}
                   className="min-h-[100px]"
                 />
@@ -739,9 +743,21 @@ export default function CMSGamesPage() {
                                   const imageInput = document.getElementById('edit-game-image') as HTMLInputElement;
                                   if (imageInput && data.imageUrl) {
                                     imageInput.value = data.imageUrl;
+                                    
+                                    // Update image preview with the actual URL from server
+                                    setImagePreview(data.imageUrl);
+                                    
+                                    // Update the game object in state so it's available when saving
+                                    if (gameToEdit) {
+                                      setGameToEdit({
+                                        ...gameToEdit,
+                                        imageUrl: data.imageUrl
+                                      });
+                                    }
+                                    
                                     toast({
                                       title: "Success",
-                                      description: "Image uploaded successfully"
+                                      description: "Image uploaded successfully. Click Save Changes to update the game."
                                     });
                                   }
                                 })
@@ -781,17 +797,24 @@ export default function CMSGamesPage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Game URL</label>
-                <Input defaultValue={gameToEdit.externalUrl || ''} />
+                <Input 
+                  id="edit-game-url"
+                  defaultValue={gameToEdit.externalUrl || ''} 
+                />
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Developer</label>
-                <Input defaultValue={gameToEdit.developer} />
+                <Input 
+                  id="edit-game-developer"
+                  defaultValue={gameToEdit.developer} 
+                />
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Game Instructions</label>
                 <Textarea 
+                  id="edit-game-instructions"
                   defaultValue={gameToEdit.instructions}
                   className="min-h-[100px]"
                 />
@@ -819,13 +842,29 @@ export default function CMSGamesPage() {
                 onClick={() => {
                   if (!gameToEdit) return;
                   
-                  // Get the image URL from the input field
+                  // Show loading toast
+                  toast({
+                    title: "Saving changes",
+                    description: "Updating game information..."
+                  });
+                  
+                  // Get all form values
                   const imageInput = document.getElementById('edit-game-image') as HTMLInputElement;
                   const titleInput = document.getElementById('edit-game-title') as HTMLInputElement;
                   const descriptionTextarea = document.getElementById('edit-game-description') as HTMLTextAreaElement;
+                  const gameUrlInput = document.getElementById('edit-game-url') as HTMLInputElement;
+                  const developerInput = document.getElementById('edit-game-developer') as HTMLInputElement;
+                  const instructionsTextarea = document.getElementById('edit-game-instructions') as HTMLTextAreaElement;
                   const featuredCheckbox = document.getElementById('edit-featured-game') as HTMLInputElement;
+                  const categorySelect = document.getElementById('edit-game-category') as HTMLSelectElement;
                   
-                  // Make a direct update request
+                  // Get the category ID from the select element
+                  let categoryId = gameToEdit.categoryId;
+                  if (categorySelect && categorySelect.value) {
+                    categoryId = parseInt(categorySelect.value);
+                  }
+                  
+                  // Make a direct update request with all form values
                   fetch(`/api/admin/games/${gameToEdit.id}`, {
                     method: 'PATCH',
                     headers: {
@@ -836,14 +875,16 @@ export default function CMSGamesPage() {
                       title: titleInput?.value || gameToEdit.title,
                       imageUrl: imageInput?.value || gameToEdit.imageUrl,
                       description: descriptionTextarea?.value || gameToEdit.description,
+                      externalUrl: gameUrlInput?.value || gameToEdit.externalUrl,
+                      developer: developerInput?.value || gameToEdit.developer,
+                      instructions: instructionsTextarea?.value || gameToEdit.instructions,
                       isFeatured: featuredCheckbox?.checked,
-                      // Keep existing values for other fields
-                      categoryId: gameToEdit.categoryId,
+                      categoryId: categoryId,
+                      // Keep existing score data
                       plays: gameToEdit.plays || 0,
                       rating: gameToEdit.rating || 0,
-                      developer: gameToEdit.developer,
-                      instructions: gameToEdit.instructions,
-                      externalUrl: gameToEdit.externalUrl,
+                      // Include release date (required by the schema)
+                      releaseDate: gameToEdit.releaseDate || new Date().toISOString(),
                     }),
                     credentials: 'include'
                   })
