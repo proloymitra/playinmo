@@ -117,9 +117,8 @@ function AddGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
   const [gameType, setGameType] = useState<'url' | 'html'>('url');
   const [isUploading, setIsUploading] = useState(false);
   
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
-    queryKey: ['/api/categories'],
-    select: (data) => data || []
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['/api/categories']
   });
   
   const form = useForm<z.infer<typeof newGameSchema>>({
@@ -282,7 +281,7 @@ function AddGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                           {categoriesLoading ? (
                             <SelectItem value="loading" disabled>Loading...</SelectItem>
                           ) : (
-                            categories?.map((category: any) => (
+                            (categories || []).map((category: any) => (
                               <SelectItem key={category.id} value={category.slug}>
                                 {category.name}
                               </SelectItem>
