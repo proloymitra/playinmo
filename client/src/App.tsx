@@ -9,6 +9,7 @@ import { initGA } from './lib/analytics';
 import { useAnalytics } from './hooks/use-analytics';
 
 import Home from "@/pages/Home";
+import GamesPage from "@/pages/GamesPage";
 import GameDetailsPage from "@/pages/GameDetailsPage";
 import CategoryPage from "@/pages/CategoryPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
@@ -40,6 +41,7 @@ function Router() {
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/games" component={GamesPage} />
           <Route path="/game/:id" component={GameDetailsPage} />
           <Route path="/category/:slug" component={CategoryPage} />
           <Route path="/leaderboard" component={LeaderboardPage} />
