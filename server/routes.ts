@@ -1068,12 +1068,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
       
-      // Get the file path relative to public directory
-      const relativePath = '/uploads/' + req.file.filename;
+      // Get the filename of the uploaded file
+      const filename = req.file.filename;
       
       // Return the URL for the uploaded image
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      const imageUrl = baseUrl + relativePath;
+      // Use a simpler relative URL which will work with our uploads route
+      const imageUrl = `/uploads/${filename}`;
       
       console.log(`Image uploaded successfully: ${imageUrl}`);
       
