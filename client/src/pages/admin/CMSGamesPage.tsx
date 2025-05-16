@@ -152,6 +152,8 @@ export default function CMSGamesPage() {
     }
   }, [gameToEdit]);
   
+
+  
   // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -814,10 +816,62 @@ export default function CMSGamesPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={handleEditGameSubmit}
-                disabled={updateGameMutation.isPending}
+                onClick={() => {
+                  if (!gameToEdit) return;
+                  
+                  // Get the image URL from the input field
+                  const imageInput = document.getElementById('edit-game-image') as HTMLInputElement;
+                  const titleInput = document.getElementById('edit-game-title') as HTMLInputElement;
+                  const descriptionTextarea = document.getElementById('edit-game-description') as HTMLTextAreaElement;
+                  const featuredCheckbox = document.getElementById('edit-featured-game') as HTMLInputElement;
+                  
+                  // Make a direct update request
+                  fetch(`/api/admin/games/${gameToEdit.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      id: gameToEdit.id,
+                      title: titleInput?.value || gameToEdit.title,
+                      imageUrl: imageInput?.value || gameToEdit.imageUrl,
+                      description: descriptionTextarea?.value || gameToEdit.description,
+                      isFeatured: featuredCheckbox?.checked,
+                      // Keep existing values for other fields
+                      categoryId: gameToEdit.categoryId,
+                      plays: gameToEdit.plays || 0,
+                      rating: gameToEdit.rating || 0,
+                      developer: gameToEdit.developer,
+                      instructions: gameToEdit.instructions,
+                      externalUrl: gameToEdit.externalUrl,
+                    }),
+                    credentials: 'include'
+                  })
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error('Failed to update game');
+                    }
+                    return response.json();
+                  })
+                  .then(() => {
+                    toast({
+                      title: "Success",
+                      description: "Game updated successfully"
+                    });
+                    queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+                    setIsEditDialogOpen(false);
+                  })
+                  .catch(error => {
+                    console.error('Error updating game:', error);
+                    toast({
+                      variant: "destructive",
+                      title: "Error",
+                      description: "Failed to update game"
+                    });
+                  });
+                }}
               >
-                {updateGameMutation.isPending ? 'Saving...' : 'Save Changes'}
+                Save Changes
               </Button>
             </DialogFooter>
           </DialogContent>
