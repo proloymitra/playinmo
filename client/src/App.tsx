@@ -24,6 +24,7 @@ import CMSLoginPage from "@/pages/admin/CMSLoginPage";
 import CMSDashboardPage from "@/pages/admin/CMSDashboardPage";
 import CMSGamesPage from "@/pages/admin/CMSGamesPage";
 import CMSCategoriesPage from "@/pages/admin/CMSCategoriesPage";
+import CMSWebsiteContentPage from "@/pages/admin/CMSWebsiteContentPage";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
