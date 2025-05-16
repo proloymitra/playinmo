@@ -222,78 +222,146 @@ export default function CMSGamesPage() {
   
   // Handle form submission for adding a new game
   const handleAddGame = () => {
-    // Get form values
-    const title = (document.getElementById('game-title') as HTMLInputElement)?.value;
-    const categorySelect = document.querySelector('select') as HTMLSelectElement;
-    const categoryId = categorySelect?.value || '';
-    const description = (document.getElementById('game-description') as HTMLTextAreaElement)?.value;
-    const imageUrl = (document.getElementById('game-image') as HTMLInputElement)?.value;
-    const developer = (document.getElementById('game-developer') as HTMLInputElement)?.value;
-    const instructions = (document.getElementById('game-instructions') as HTMLTextAreaElement)?.value || 'Use your mouse or touchscreen to play.';
-    const isFeatured = (document.getElementById('featured-game') as HTMLInputElement)?.checked;
-    
-    // Validate required fields
-    if (!title) {
-      toast({ title: "Error", description: "Title is required", variant: "destructive" });
-      return;
-    }
-    
-    if (!description) {
-      toast({ title: "Error", description: "Description is required", variant: "destructive" });
-      return;
-    }
-    
-    if (!imageUrl) {
-      toast({ title: "Error", description: "Image URL is required", variant: "destructive" });
-      return;
-    }
-    
-    // Game type specific validation
-    if (gameType === 'url') {
-      const externalUrl = (document.getElementById('game-url') as HTMLInputElement)?.value;
-      if (!externalUrl) {
-        toast({ title: "Error", description: "Game URL is required", variant: "destructive" });
+    try {
+      // Get form values
+      const title = (document.getElementById('game-title') as HTMLInputElement)?.value;
+      const categorySelect = document.querySelector('[id^="radix-:"]') as HTMLSelectElement;
+      const categoryId = categorySelect?.value || '1';
+      const description = (document.getElementById('game-description') as HTMLTextAreaElement)?.value;
+      const imageUrl = (document.getElementById('game-image') as HTMLInputElement)?.value;
+      const developer = (document.getElementById('game-developer') as HTMLInputElement)?.value;
+      const instructions = (document.getElementById('game-instructions') as HTMLTextAreaElement)?.value || 'Use your mouse or touchscreen to play.';
+      const isFeatured = (document.getElementById('featured-game') as HTMLInputElement)?.checked;
+      
+      console.log('Form values:', {
+        title, categoryId, description, imageUrl, developer, instructions, isFeatured
+      });
+      
+      // Validate required fields
+      if (!title) {
+        toast({ title: "Error", description: "Title is required", variant: "destructive" });
         return;
       }
       
-      // Create game data
-      const gameData = {
-        title,
-        description,
-        imageUrl,
-        categoryId: parseInt(categoryId) || 1,
-        developer: developer || 'Unknown',
-        externalUrl,
-        instructions: instructions || 'Use your mouse or touch to play the game',
-        isFeatured: isFeatured || false,
-        releaseDate: new Date(),
-        plays: 0,
-        rating: 0
-      };
-      
-      // Submit the form data
-      createGameMutation.mutate(gameData);
-    } else {
-      // HTML package upload
-      const htmlFile = (document.getElementById('game-html') as HTMLInputElement)?.files?.[0];
-      if (!htmlFile) {
-        toast({ title: "Error", description: "HTML file is required", variant: "destructive" });
+      if (!description) {
+        toast({ title: "Error", description: "Description is required", variant: "destructive" });
         return;
       }
       
-      // Create FormData
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('imageUrl', imageUrl);
-      formData.append('categoryId', categoryId);
-      formData.append('developer', developer || 'Unknown');
-      formData.append('instructions', instructions);
-      formData.append('isFeatured', isFeatured ? 'true' : 'false');
-      formData.append('htmlFile', htmlFile);
+      if (!imageUrl) {
+        toast({ title: "Error", description: "Image URL is required", variant: "destructive" });
+        return;
+      }
       
-      // Submit the form data
-      createGameMutation.mutate(formData);
+      // For URL-based games
+      if (gameType === 'url') {
+        const externalUrl = (document.getElementById('game-url') as HTMLInputElement)?.value;
+        if (!externalUrl) {
+          toast({ title: "Error", description: "Game URL is required", variant: "destructive" });
+          return;
+        }
+        
+        // Direct fetch instead of mutation
+        toast({ title: "Processing", description: "Adding game..." });
+        
+        fetch('/api/admin/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            title,
+            description,
+            imageUrl,
+            categoryId: parseInt(categoryId),
+            developer: developer || 'Unknown',
+            externalUrl,
+            instructions,
+            isFeatured,
+            plays: 0,
+            rating: 0,
+            releaseDate: new Date()
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              throw new Error(data.message || 'Failed to add game');
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Game added successfully:', data);
+          toast({ title: "Success", description: "Game added successfully" });
+          queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+          setIsAddDialogOpen(false);
+        })
+        .catch(error => {
+          console.error('Error adding game:', error);
+          toast({ 
+            variant: "destructive", 
+            title: "Error", 
+            description: error.message || 'Failed to add game' 
+          });
+        });
+      } 
+      // For HTML package uploads
+      else {
+        const htmlFile = (document.getElementById('game-html') as HTMLInputElement)?.files?.[0];
+        if (!htmlFile) {
+          toast({ title: "Error", description: "HTML file is required", variant: "destructive" });
+          return;
+        }
+        
+        toast({ title: "Processing", description: "Uploading game package..." });
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('imageUrl', imageUrl);
+        formData.append('categoryId', categoryId);
+        formData.append('developer', developer || 'Unknown');
+        formData.append('instructions', instructions);
+        formData.append('isFeatured', isFeatured ? 'true' : 'false');
+        formData.append('htmlFile', htmlFile);
+        
+        // Direct fetch instead of mutation
+        fetch('/api/admin/games/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              throw new Error(data.message || 'Failed to upload game package');
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Game package uploaded successfully:', data);
+          toast({ title: "Success", description: "Game package uploaded successfully" });
+          queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+          setIsAddDialogOpen(false);
+        })
+        .catch(error => {
+          console.error('Error uploading game package:', error);
+          toast({ 
+            variant: "destructive", 
+            title: "Error", 
+            description: error.message || 'Failed to upload game package' 
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleAddGame:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Something went wrong while submitting the form"
+      });
     }
   };
 

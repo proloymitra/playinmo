@@ -803,22 +803,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Received game data:", req.body);
       
-      // Pre-format some fields to ensure they match the schema
-      const formattedData = {
-        ...req.body,
-        categoryId: typeof req.body.categoryId === 'string' ? 
-          parseInt(req.body.categoryId) : req.body.categoryId,
-        plays: req.body.plays || 0,
-        rating: req.body.rating || 0,
-        isFeatured: req.body.isFeatured === "true" ? true : 
-          (typeof req.body.isFeatured === 'boolean' ? req.body.isFeatured : false)
+      // Create a proper game object with all required fields
+      const gameData = {
+        title: req.body.title,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        categoryId: typeof req.body.categoryId === 'string' ? parseInt(req.body.categoryId) : req.body.categoryId,
+        developer: req.body.developer || 'Unknown',
+        isFeatured: typeof req.body.isFeatured === 'boolean' ? req.body.isFeatured : 
+                    req.body.isFeatured === 'true',
+        plays: typeof req.body.plays === 'number' ? req.body.plays : 0,
+        rating: typeof req.body.rating === 'number' ? req.body.rating : 0,
+        instructions: req.body.instructions || 'Use your mouse or touch to play.',
+        externalUrl: req.body.externalUrl,
+        releaseDate: new Date()
       };
       
-      // Parse the data through schema validation
-      const gameData = insertGameSchema.parse(formattedData);
-      console.log("Validated game data:", gameData);
+      console.log("Formatted game data:", gameData);
       
-      // Create the game
+      // Create the game directly
       const game = await storage.createGame(gameData);
       console.log("Created game:", game);
       
