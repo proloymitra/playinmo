@@ -145,6 +145,13 @@ export default function CMSGamesPage() {
     return category ? category.name : 'Unknown';
   };
   
+  // Initialize the image preview when opening the edit dialog
+  useEffect(() => {
+    if (gameToEdit) {
+      setImagePreview(gameToEdit.imageUrl);
+    }
+  }, [gameToEdit]);
+  
   // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
