@@ -479,6 +479,59 @@ export class MemStorage implements IStorage {
     this.messages.set(id, message);
     return message;
   }
+
+  // Website Content Management Methods
+  async getWebsiteContent(): Promise<WebsiteContent[]> {
+    return Array.from(this.contents.values());
+  }
+  
+  async getWebsiteContentBySection(section: string): Promise<WebsiteContent[]> {
+    return Array.from(this.contents.values())
+      .filter(content => content.section === section);
+  }
+  
+  async getWebsiteContentItem(section: string, key: string): Promise<WebsiteContent | undefined> {
+    return Array.from(this.contents.values())
+      .find(content => content.section === section && content.key === key);
+  }
+  
+  async updateWebsiteContent(id: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined> {
+    const content = this.contents.get(id);
+    if (!content) return undefined;
+    
+    const updatedContent: WebsiteContent = {
+      ...content,
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    this.contents.set(id, updatedContent);
+    return updatedContent;
+  }
+  
+  async createWebsiteContent(content: InsertWebsiteContent): Promise<WebsiteContent> {
+    const id = this.contentIdCounter++;
+    const now = new Date();
+    
+    const newContent: WebsiteContent = {
+      id,
+      ...content,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.contents.set(id, newContent);
+    return newContent;
+  }
+  
+  async deleteWebsiteContent(id: number): Promise<boolean> {
+    if (!this.contents.has(id)) {
+      return false;
+    }
+    
+    this.contents.delete(id);
+    return true;
+  }
 }
 
 // Import DatabaseStorage and initializeDatabase

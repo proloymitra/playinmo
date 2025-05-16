@@ -10,8 +10,12 @@ import {
   insertGameScoreSchema,
   insertChatMessageSchema,
   insertGameReviewSchema,
+  insertWebsiteContentSchema,
+  websiteContent,
   type User
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { generateOTP, generateSecret, getOTPExpiry, sendOTPEmail } from "./emailService";
 
 // Extend Express Request type to include user property
@@ -843,10 +847,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // First check if the item exists
-      const [item] = await db
-        .select()
-        .from(websiteContent)
-        .where(eq(websiteContent.id, id));
+      const item = await storage.getWebsiteContent().then(
+        contents => contents.find(content => content.id === id)
+      );
       
       if (!item) {
         return res.status(404).json({ message: "Content not found" });

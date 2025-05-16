@@ -535,6 +535,30 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
   
+  async deleteWebsiteContent(id: number): Promise<boolean> {
+    try {
+      // Check if content exists
+      const [content] = await db
+        .select()
+        .from(websiteContent)
+        .where(eq(websiteContent.id, id));
+        
+      if (!content) {
+        return false;
+      }
+      
+      // Delete the content
+      await db
+        .delete(websiteContent)
+        .where(eq(websiteContent.id, id));
+        
+      return true;
+    } catch (error) {
+      console.error("Error deleting website content:", error);
+      return false;
+    }
+  }
+  
   // For backward compatibility with existing code
   async getSiteContent(): Promise<any> {
     // Convert flat database records to the nested structure expected by the frontend
