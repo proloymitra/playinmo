@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   PlusCircle, 
@@ -91,6 +91,7 @@ export default function CMSGamesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [gameToDelete, setGameToDelete] = useState<number | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   
   // State for game type selection (URL or HTML package)
   const [gameType, setGameType] = useState<'url' | 'html'>('url');
@@ -680,7 +681,26 @@ export default function CMSGamesPage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Image URL</label>
-                <Input defaultValue={gameToEdit.imageUrl} />
+                <div className="flex gap-4">
+                  <div className="flex-grow">
+                    <Input 
+                      id="edit-game-image"
+                      defaultValue={gameToEdit.imageUrl} 
+                      onChange={(e) => setImagePreview(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200">
+                    <img 
+                      src={imagePreview || gameToEdit.imageUrl} 
+                      alt="Game icon preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://placehold.co/300x300?text=Preview';
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-2">
