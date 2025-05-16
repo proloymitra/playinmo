@@ -21,7 +21,6 @@ export default function Footer() {
                 <span className="text-2xl font-bold text-white tracking-wider">
                   Playin<span className="text-primary">MO</span>
                 </span>
-                <span className="text-xs text-gray-400 -mt-1">your web gaming destination for Ai powered games</span>
               </div>
             </div>
             <p className="text-gray-400 mb-4">
