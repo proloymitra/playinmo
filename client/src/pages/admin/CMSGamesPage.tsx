@@ -87,10 +87,13 @@ interface Game {
 export default function CMSGamesPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [gameToDelete, setGameToDelete] = useState<number | null>(null);
+  
+  // State for game type selection (URL or HTML package)
+  const [gameType, setGameType] = useState<'url' | 'html'>('url');
   
   // Get all games
   const { data: games, isLoading } = useQuery<Game[]>({
@@ -119,7 +122,6 @@ export default function CMSGamesPage() {
         description: 'The game has been successfully deleted',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/games'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/games/featured'] });
       setGameToDelete(null);
     },
     onError: (error) => {
@@ -142,116 +144,127 @@ export default function CMSGamesPage() {
     return category ? category.name : 'Unknown';
   };
   
-  // State for game type selection (URL or HTML package)
-  const [gameType, setGameType] = useState<'url' | 'html'>('url');
-  
-  // Create game mutation for adding new games
+  // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Use the correct API endpoint
-      let endpoint = '/api/admin/games';
-      let method = 'POST';
-      let body;
-      
+      // For URL-based games
       if (gameType === 'url') {
-        // For URL-based games, send JSON data
-        body = JSON.stringify(data);
-        return fetch(endpoint, {
-          method,
+        const response = await fetch('/api/admin/games', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body,
-        });
-      } else {
-        // For HTML package uploads, use FormData
-        const formData = new FormData();
-        Object.entries(data).forEach(([key, value]) => {
-          formData.append(key, value as string);
+          body: JSON.stringify(data),
         });
         
-        if (data.htmlFile) {
-          formData.append('htmlPackage', data.htmlFile);
+        if (!response.ok) {
+          throw new Error('Failed to create game');
         }
         
-        endpoint = '/api/admin/games/upload';
-        return fetch(endpoint, {
-          method,
-          body: formData,
+        return response.json();
+      } 
+      // For HTML uploads
+      else {
+        const response = await fetch('/api/admin/games/upload', {
+          method: 'POST',
+          body: data, // FormData
         });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload game package');
+        }
+        
+        return response.json();
       }
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Game created successfully",
+        description: gameType === 'url' ? "Game added successfully" : "Game package uploaded successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/games'] });
-      setIsNewGameDialogOpen(false);
+      setIsAddDialogOpen(false);
     },
     onError: (error) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: `Failed to create game: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to add game: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     },
   });
   
-  // Function to handle adding a new game
-  const handleAddNewGame = (formData: any) => {
-    if (gameType === 'html' && formData.htmlFile) {
-      // For HTML uploads, we need to use FormData
-      const uploadData = new FormData();
-      uploadData.append('title', formData.title);
-      uploadData.append('description', formData.description);
-      uploadData.append('imageUrl', formData.imageUrl);
-      uploadData.append('categoryId', formData.categoryId || '1');
-      uploadData.append('developer', formData.developer || '');
-      uploadData.append('instructions', formData.instructions || '');
-      uploadData.append('isFeatured', formData.isFeatured ? 'true' : 'false');
-      uploadData.append('htmlFile', formData.htmlFile);
+  // Handle form submission for adding a new game
+  const handleAddGame = () => {
+    // Get form values
+    const title = (document.getElementById('game-title') as HTMLInputElement)?.value;
+    const categorySelect = document.querySelector('select') as HTMLSelectElement;
+    const categoryId = categorySelect?.value || '';
+    const description = (document.getElementById('game-description') as HTMLTextAreaElement)?.value;
+    const imageUrl = (document.getElementById('game-image') as HTMLInputElement)?.value;
+    const developer = (document.getElementById('game-developer') as HTMLInputElement)?.value;
+    const instructions = (document.getElementById('game-instructions') as HTMLTextAreaElement)?.value || 'Use your mouse or touchscreen to play.';
+    const isFeatured = (document.getElementById('featured-game') as HTMLInputElement)?.checked;
+    
+    // Validate required fields
+    if (!title) {
+      toast({ title: "Error", description: "Title is required", variant: "destructive" });
+      return;
+    }
+    
+    if (!description) {
+      toast({ title: "Error", description: "Description is required", variant: "destructive" });
+      return;
+    }
+    
+    if (!imageUrl) {
+      toast({ title: "Error", description: "Image URL is required", variant: "destructive" });
+      return;
+    }
+    
+    // Game type specific validation
+    if (gameType === 'url') {
+      const externalUrl = (document.getElementById('game-url') as HTMLInputElement)?.value;
+      if (!externalUrl) {
+        toast({ title: "Error", description: "Game URL is required", variant: "destructive" });
+        return;
+      }
       
-      // Show loading state
-      toast({
-        title: "Uploading...",
-        description: "Uploading your game package",
-      });
+      // Create game data
+      const gameData = {
+        title,
+        description,
+        imageUrl,
+        categoryId: parseInt(categoryId) || 1,
+        developer: developer || 'Unknown',
+        externalUrl,
+        instructions,
+        isFeatured: isFeatured || false,
+        releaseDate: new Date().toISOString().split('T')[0]
+      };
       
-      // Manually handle the upload
-      fetch('/api/admin/games/upload', {
-        method: 'POST',
-        body: uploadData,
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to upload game package');
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Success
-        toast({
-          title: "Success",
-          description: "Game package uploaded successfully",
-        });
-        
-        // Refresh games list
-        queryClient.invalidateQueries({ queryKey: ['/api/games'] });
-        
-        // Close dialog
-        setIsNewGameDialogOpen(false);
-      })
-      .catch(error => {
-        // Error
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: `Failed to upload game package: ${error.message}`,
-        });
-      });
+      // Submit the form data
+      createGameMutation.mutate(gameData);
     } else {
-      // For URL-based games, use the mutation
+      // HTML package upload
+      const htmlFile = (document.getElementById('game-html') as HTMLInputElement)?.files?.[0];
+      if (!htmlFile) {
+        toast({ title: "Error", description: "HTML file is required", variant: "destructive" });
+        return;
+      }
+      
+      // Create FormData
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('imageUrl', imageUrl);
+      formData.append('categoryId', categoryId);
+      formData.append('developer', developer || 'Unknown');
+      formData.append('instructions', instructions);
+      formData.append('isFeatured', isFeatured ? 'true' : 'false');
+      formData.append('htmlFile', htmlFile);
+      
+      // Submit the form data
       createGameMutation.mutate(formData);
     }
   };
@@ -260,7 +273,7 @@ export default function CMSGamesPage() {
     <AdminLayout>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Games Management</h1>
-        <Button onClick={() => setIsNewGameDialogOpen(true)}>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Game
         </Button>
@@ -390,225 +403,142 @@ export default function CMSGamesPage() {
         </CardContent>
       </Card>
       
-      {/* Enhanced Add New Game Dialog with URL and HTML Package options */}
-      {isNewGameDialogOpen && (
-        <Dialog open={isNewGameDialogOpen} onOpenChange={(open) => !open && setIsNewGameDialogOpen(false)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Add New Game</DialogTitle>
-              <DialogDescription>
-                Add a new game to your platform using an external URL or by uploading an HTML package
-              </DialogDescription>
-            </DialogHeader>
+      {/* Add Game Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Game</DialogTitle>
+            <DialogDescription>
+              Add a new game to your platform using an external URL or by uploading an HTML package
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="url" onValueChange={(value) => setGameType(value as 'url' | 'html')}>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="url" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                <span>External URL</span>
+              </TabsTrigger>
+              <TabsTrigger value="html" className="flex items-center gap-2">
+                <FileCode className="h-4 w-4" />
+                <span>HTML Package</span>
+              </TabsTrigger>
+            </TabsList>
             
-            <Tabs defaultValue="url" onValueChange={(value) => setGameType(value as 'url' | 'html')}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="url" className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  External URL
-                </TabsTrigger>
-                <TabsTrigger value="html" className="flex items-center gap-2">
-                  <FileCode className="h-4 w-4" />
-                  HTML Package
-                </TabsTrigger>
-              </TabsList>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Game Title *</label>
+                <Input id="game-title" placeholder="Enter game title" required />
+              </div>
               
-              <div className="space-y-6 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Title *</label>
-                    <Input 
-                      id="game-title" 
-                      placeholder="Game title"
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Category *</label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category: any) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Description *</label>
-                  <Textarea 
-                    id="game-description"
-                    placeholder="Provide a description of the game"
-                    className="min-h-[100px]"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Image URL *</label>
-                  <Input 
-                    id="game-image"
-                    placeholder="https://example.com/image.jpg"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Provide a URL to an image that will be used as the game thumbnail
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Developer</label>
-                  <Input id="game-developer" placeholder="Game developer name" />
-                </div>
-                
-                <TabsContent value="url" className="p-0 m-0 space-y-2">
-                  <label className="text-sm font-medium">Game URL *</label>
-                  <Input 
-                    id="game-url"
-                    placeholder="https://example.com/game"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Provide the URL to the external game that will be embedded in an iframe
-                  </p>
-                </TabsContent>
-                
-                <TabsContent value="html" className="p-0 m-0 space-y-2">
-                  <label className="text-sm font-medium">HTML Package *</label>
-                  <Input 
-                    id="game-html"
-                    type="file" 
-                    accept=".zip,.html"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Upload a ZIP file containing your HTML game files or a single HTML file
-                  </p>
-                </TabsContent>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Game Instructions</label>
-                  <Textarea 
-                    id="game-instructions"
-                    placeholder="How to play the game"
-                    className="min-h-[80px]"
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2 pt-2">
-                  <Checkbox id="featured-game" />
-                  <label 
-                    htmlFor="featured-game" 
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    Featured Game (displayed on homepage)
-                  </label>
+                  <label className="text-sm font-medium">Category *</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category: any) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
-              <DialogFooter className="mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsNewGameDialogOpen(false)}
-                  disabled={createGameMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => {
-                    // Create references to all form elements
-                    const title = (document.getElementById('game-title') as HTMLInputElement)?.value;
-                    const categorySelect = document.querySelector('[id^="radix-:"]') as HTMLSelectElement;
-                    const categoryId = categorySelect?.value || '';
-                    const description = document.getElementById('game-description') as HTMLTextAreaElement;
-                    const imageUrl = document.getElementById('game-image') as HTMLInputElement;
-                    const developer = document.getElementById('game-developer') as HTMLInputElement;
-                    const gameUrl = document.getElementById('game-url') as HTMLInputElement;
-                    const htmlFile = document.getElementById('game-html') as HTMLInputElement;
-                    const instructions = document.getElementById('game-instructions') as HTMLTextAreaElement;
-                    const isFeatured = (document.getElementById('featured-game') as HTMLInputElement)?.checked;
-                    
-                    // Create form data object
-                    const formData = {
-                      title: title || '',
-                      categoryId: categoryId,
-                      description: description?.value || '',
-                      imageUrl: imageUrl?.value || '',
-                      developer: developer?.value || '',
-                      gameType,
-                      externalUrl: gameType === 'url' ? (gameUrl?.value || '') : '',
-                      htmlFile: gameType === 'html' ? (htmlFile?.files?.[0] || null) : null,
-                      instructions: instructions?.value || 'Use your mouse or touchscreen to play.',
-                      isFeatured: isFeatured || false
-                    };
-                    
-                    // Validate required fields
-                    if (!formData.title) {
-                      toast({
-                        title: "Error",
-                        description: "Title is required",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    
-                    if (!formData.description) {
-                      toast({
-                        title: "Error",
-                        description: "Description is required",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    
-                    if (!formData.imageUrl) {
-                      toast({
-                        title: "Error",
-                        description: "Image URL is required",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    
-                    if (gameType === 'url' && !formData.externalUrl) {
-                      toast({
-                        title: "Error",
-                        description: "Game URL is required for external games",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    
-                    if (gameType === 'html' && !formData.htmlFile) {
-                      toast({
-                        title: "Error",
-                        description: "HTML file is required for HTML games",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    
-                    // Submit the form
-                    handleAddNewGame(formData);
-                  }}
-                  disabled={createGameMutation.isPending}
-                >
-                  {createGameMutation.isPending ? 
-                    (gameType === 'html' ? 'Uploading...' : 'Creating...') : 
-                    'Add Game'
-                  }
-                </Button>
-              </DialogFooter>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      )}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description *</label>
+                <Textarea 
+                  id="game-description"
+                  placeholder="Provide a description of the game"
+                  className="min-h-[100px]"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Image URL *</label>
+                <Input 
+                  id="game-image"
+                  placeholder="https://example.com/image.jpg"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Provide a URL to an image that will be used as the game thumbnail
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Developer</label>
+                <Input id="game-developer" placeholder="Game developer name" />
+              </div>
+              
+              <TabsContent value="url" className="p-0 m-0 space-y-2">
+                <label className="text-sm font-medium">Game URL *</label>
+                <Input 
+                  id="game-url"
+                  placeholder="https://example.com/game"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Provide the URL to the external game that will be embedded in an iframe
+                </p>
+              </TabsContent>
+              
+              <TabsContent value="html" className="p-0 m-0 space-y-2">
+                <label className="text-sm font-medium">HTML Package *</label>
+                <Input 
+                  id="game-html"
+                  type="file" 
+                  accept=".zip,.html"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Upload a ZIP file containing your HTML game files or a single HTML file
+                </p>
+              </TabsContent>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Game Instructions</label>
+                <Textarea 
+                  id="game-instructions"
+                  placeholder="How to play the game"
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox id="featured-game" />
+                <label htmlFor="featured-game" className="text-sm font-medium">
+                  Featured Game
+                </label>
+              </div>
+            </div>
+            
+            <DialogFooter className="mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddDialogOpen(false)}
+                disabled={createGameMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddGame}
+                disabled={createGameMutation.isPending}
+              >
+                {createGameMutation.isPending ? 
+                  (gameType === 'html' ? 'Uploading...' : 'Creating...') : 
+                  'Add Game'
+                }
+              </Button>
+            </DialogFooter>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
       
       {/* Edit Dialog (Simplified) */}
       {isEditDialogOpen && gameToEdit && (
@@ -629,17 +559,27 @@ export default function CMSGamesPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <select 
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    defaultValue={gameToEdit.categoryId}
-                  >
-                    {categories.map((category: any) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select defaultValue={gameToEdit.categoryId.toString()}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category: any) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea 
+                  defaultValue={gameToEdit.description}
+                  className="min-h-[100px]"
+                />
               </div>
               
               <div className="space-y-2">
@@ -648,34 +588,42 @@ export default function CMSGamesPage() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea 
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                  defaultValue={gameToEdit.description}
-                ></textarea>
+                <label className="text-sm font-medium">Game URL</label>
+                <Input defaultValue={gameToEdit.externalUrl || ''} />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Developer</label>
+                <Input defaultValue={gameToEdit.developer} />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Game Instructions</label>
+                <Textarea 
+                  defaultValue={gameToEdit.instructions}
+                  className="min-h-[100px]"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="edit-featured-game" 
+                  checked={gameToEdit.isFeatured || false}
+                />
+                <label htmlFor="edit-featured-game" className="text-sm font-medium">
+                  Featured Game
+                </label>
               </div>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="mt-6">
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  setGameToEdit(null);
-                }}
+                onClick={() => setIsEditDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={() => {
-                  toast({
-                    title: "Saved",
-                    description: "Game details have been updated."
-                  });
-                  setIsEditDialogOpen(false);
-                  setGameToEdit(null);
-                }}
-              >
+              <Button>
                 Save Changes
               </Button>
             </DialogFooter>
