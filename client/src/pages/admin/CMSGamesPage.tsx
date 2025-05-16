@@ -390,6 +390,7 @@ export default function CMSGamesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Description *</label>
                   <Textarea 
+                    id="game-description"
                     placeholder="Provide a description of the game"
                     className="min-h-[100px]"
                     required
@@ -399,6 +400,7 @@ export default function CMSGamesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Image URL *</label>
                   <Input 
+                    id="game-image"
                     placeholder="https://example.com/image.jpg"
                     required
                   />
@@ -409,12 +411,13 @@ export default function CMSGamesPage() {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Developer</label>
-                  <Input placeholder="Game developer name" />
+                  <Input id="game-developer" placeholder="Game developer name" />
                 </div>
                 
                 <TabsContent value="url" className="p-0 m-0 space-y-2">
                   <label className="text-sm font-medium">Game URL *</label>
                   <Input 
+                    id="game-url"
                     placeholder="https://example.com/game"
                     required
                   />
@@ -426,6 +429,7 @@ export default function CMSGamesPage() {
                 <TabsContent value="html" className="p-0 m-0 space-y-2">
                   <label className="text-sm font-medium">HTML Package *</label>
                   <Input 
+                    id="game-html"
                     type="file" 
                     accept=".zip,.html"
                     required
@@ -438,6 +442,7 @@ export default function CMSGamesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Game Instructions</label>
                   <Textarea 
+                    id="game-instructions"
                     placeholder="How to play the game"
                     className="min-h-[80px]"
                   />
@@ -464,12 +469,79 @@ export default function CMSGamesPage() {
                 </Button>
                 <Button 
                   onClick={() => {
-                    // Collect form data
+                    // Create references to all form elements
+                    const title = (document.getElementById('game-title') as HTMLInputElement)?.value;
+                    const categorySelect = document.querySelector('[id^="radix-:"]') as HTMLSelectElement;
+                    const categoryId = categorySelect?.value || '';
+                    const description = document.getElementById('game-description') as HTMLTextAreaElement;
+                    const imageUrl = document.getElementById('game-image') as HTMLInputElement;
+                    const developer = document.getElementById('game-developer') as HTMLInputElement;
+                    const gameUrl = document.getElementById('game-url') as HTMLInputElement;
+                    const htmlFile = document.getElementById('game-html') as HTMLInputElement;
+                    const instructions = document.getElementById('game-instructions') as HTMLTextAreaElement;
+                    const isFeatured = (document.getElementById('featured-game') as HTMLInputElement)?.checked;
+                    
+                    // Create form data object
                     const formData = {
-                      title: (document.getElementById('game-title') as HTMLInputElement)?.value,
-                      // Add other form fields as needed
-                      gameType: gameType
+                      title: title || '',
+                      categoryId: categoryId,
+                      description: description?.value || '',
+                      imageUrl: imageUrl?.value || '',
+                      developer: developer?.value || '',
+                      gameType,
+                      externalUrl: gameType === 'url' ? (gameUrl?.value || '') : '',
+                      htmlFile: gameType === 'html' ? (htmlFile?.files?.[0] || null) : null,
+                      instructions: instructions?.value || 'Use your mouse or touchscreen to play.',
+                      isFeatured: isFeatured || false
                     };
+                    
+                    // Validate required fields
+                    if (!formData.title) {
+                      toast({
+                        title: "Error",
+                        description: "Title is required",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    if (!formData.description) {
+                      toast({
+                        title: "Error",
+                        description: "Description is required",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    if (!formData.imageUrl) {
+                      toast({
+                        title: "Error",
+                        description: "Image URL is required",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    if (gameType === 'url' && !formData.externalUrl) {
+                      toast({
+                        title: "Error",
+                        description: "Game URL is required for external games",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    if (gameType === 'html' && !formData.htmlFile) {
+                      toast({
+                        title: "Error",
+                        description: "HTML file is required for HTML games",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    // Submit the form
                     handleAddNewGame(formData);
                   }}
                   disabled={createGameMutation.isPending}

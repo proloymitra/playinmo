@@ -812,6 +812,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Handle HTML package uploads
+  app.post("/api/admin/games/upload", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // For now, create a game record with the provided data
+      // In a production environment, we would handle file storage
+      const gameData = {
+        title: req.body.title || "HTML Game",
+        description: req.body.description || "An HTML-based game",
+        imageUrl: req.body.imageUrl || "https://placehold.co/600x400?text=Game",
+        categoryId: parseInt(req.body.categoryId) || 1,
+        developer: req.body.developer || "Unknown",
+        isFeatured: req.body.isFeatured === "true",
+        instructions: req.body.instructions || "Use your mouse to play",
+        releaseDate: new Date().toISOString().split('T')[0],
+        // For HTML packages, store a local path or flag that it's a local game
+        externalUrl: "/games/html-package-" + Date.now()
+      };
+      
+      const game = await storage.createGame(gameData);
+      res.status(201).json(game);
+    } catch (error) {
+      console.error("Error uploading game package:", error);
+      res.status(500).json({ message: "Failed to upload game package" });
+    }
+  });
+  
   // Create category (admin only)
   app.post("/api/admin/categories", isAuthenticated, isAdmin, async (req, res) => {
     try {
