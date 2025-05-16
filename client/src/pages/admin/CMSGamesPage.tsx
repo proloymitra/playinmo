@@ -864,28 +864,33 @@ export default function CMSGamesPage() {
                     categoryId = parseInt(categorySelect.value);
                   }
                   
-                  // Make a direct update request with all form values
+                  // Show a loading toast
+                  toast({
+                    title: "Saving...",
+                    description: "Updating game information"
+                  });
+                  
+                  // Create a simpler update payload with only the changed fields
+                  const updatePayload = {
+                    title: titleInput?.value || gameToEdit.title,
+                    imageUrl: imageInput?.value || gameToEdit.imageUrl,
+                    description: descriptionTextarea?.value || gameToEdit.description,
+                    externalUrl: gameUrlInput?.value || gameToEdit.externalUrl,
+                    developer: developerInput?.value || gameToEdit.developer,
+                    instructions: instructionsTextarea?.value || gameToEdit.instructions,
+                    isFeatured: featuredCheckbox?.checked,
+                    categoryId: categoryId,
+                  };
+                  
+                  console.log("Sending update with data:", updatePayload);
+                  
+                  // Make a direct update request with just the edited fields
                   fetch(`/api/admin/games/${gameToEdit.id}`, {
                     method: 'PATCH',
                     headers: {
                       'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                      id: gameToEdit.id,
-                      title: titleInput?.value || gameToEdit.title,
-                      imageUrl: imageInput?.value || gameToEdit.imageUrl,
-                      description: descriptionTextarea?.value || gameToEdit.description,
-                      externalUrl: gameUrlInput?.value || gameToEdit.externalUrl,
-                      developer: developerInput?.value || gameToEdit.developer,
-                      instructions: instructionsTextarea?.value || gameToEdit.instructions,
-                      isFeatured: featuredCheckbox?.checked,
-                      categoryId: categoryId,
-                      // Keep existing score data
-                      plays: gameToEdit.plays || 0,
-                      rating: gameToEdit.rating || 0,
-                      // Include release date (required by the schema)
-                      releaseDate: new Date(),
-                    }),
+                    body: JSON.stringify(updatePayload),
                     credentials: 'include'
                   })
                   .then(response => {
