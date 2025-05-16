@@ -74,6 +74,16 @@ export default function GameDetailsPage() {
     setIsPlaying(true);
     try {
       await apiRequest('POST', `/api/games/${id}/play`, null);
+      
+      // Automatically enter fullscreen mode after a short delay to allow iframe to load
+      setTimeout(() => {
+        const iframe = document.querySelector('iframe');
+        if (iframe && document.fullscreenEnabled) {
+          iframe.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+          });
+        }
+      }, 1500);
     } catch (error) {
       console.error('Error incrementing game plays:', error);
     }

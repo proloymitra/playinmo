@@ -11,9 +11,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center mb-4">
-              <div className="bg-blue-500 rounded-md flex items-center justify-center w-10 h-10 mr-2">
-                <span className="text-white text-lg font-bold">P</span>
-              </div>
+              <img 
+                src="@/assets/plainmo_logo1.png" 
+                alt="PlayinMO Logo" 
+                className="w-10 h-10 mr-2" 
+              />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-white tracking-wider">
                   Playin<span className="text-primary">MO</span>
