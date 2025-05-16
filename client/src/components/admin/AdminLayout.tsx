@@ -6,7 +6,8 @@ import {
   LayoutDashboard, 
   LogOut, 
   Settings, 
-  Users 
+  Users,
+  FileEdit
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <a href="/cms/categories" className="flex items-center gap-2">
               <BarChart className="h-5 w-5" />
               Categories
+            </a>
+          </Button>
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <a href="/cms/website-content" className="flex items-center gap-2">
+              <FileEdit className="h-5 w-5" />
+              Website Content
             </a>
           </Button>
           <Button variant="ghost" className="w-full justify-start" asChild>

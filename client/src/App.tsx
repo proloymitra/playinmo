@@ -55,6 +55,7 @@ function Router() {
           <Route path="/cms/dashboard" component={CMSDashboardPage} />
           <Route path="/cms/games" component={CMSGamesPage} />
           <Route path="/cms/categories" component={CMSCategoriesPage} />
+          <Route path="/cms/website-content" component={CMSWebsiteContentPage} />
           
           {/* Fallback to 404 */}
           <Route component={NotFound} />
