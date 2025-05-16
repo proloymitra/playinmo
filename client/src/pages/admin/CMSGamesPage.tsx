@@ -147,34 +147,59 @@ export default function CMSGamesPage() {
   // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
-      // For URL-based games
-      if (gameType === 'url') {
-        const response = await fetch('/api/admin/games', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create game');
+      try {
+        // For URL-based games
+        if (gameType === 'url') {
+          // Make sure we have the right format for releaseDate
+          const formattedData = {
+            ...data,
+            // Make sure releaseDate is a proper date string
+            releaseDate: new Date(data.releaseDate).toISOString().split('T')[0],
+            // Make sure categoryId is a number
+            categoryId: typeof data.categoryId === 'string' ? parseInt(data.categoryId) : data.categoryId,
+            // Default values for optional fields
+            plays: data.plays || 0,
+            rating: data.rating || 0
+          };
+          
+          console.log('Sending game data:', formattedData);
+          
+          const response = await fetch('/api/admin/games', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formattedData),
+            credentials: 'include' // Important for authentication
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API error response:', errorData);
+            throw new Error(errorData.message || 'Failed to create game');
+          }
+          
+          return response.json();
+        } 
+        // For HTML uploads
+        else {
+          const response = await fetch('/api/admin/games/upload', {
+            method: 'POST',
+            body: data, // FormData
+            credentials: 'include' // Important for authentication
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API error response:', errorData);
+            throw new Error(errorData.message || 'Failed to upload game package');
+          }
+          
+          return response.json();
         }
-        
-        return response.json();
-      } 
-      // For HTML uploads
-      else {
-        const response = await fetch('/api/admin/games/upload', {
-          method: 'POST',
-          body: data, // FormData
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to upload game package');
-        }
-        
-        return response.json();
+      } catch (error) {
+        console.error('Mutation error:', error);
+        throw error;
       }
     },
     onSuccess: () => {
@@ -186,6 +211,7 @@ export default function CMSGamesPage() {
       setIsAddDialogOpen(false);
     },
     onError: (error) => {
+      console.error('Mutation error in component:', error);
       toast({
         variant: "destructive",
         title: "Error",
