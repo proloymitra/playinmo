@@ -42,6 +42,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
   
+  // Create a route to serve uploaded images
+  app.get('/uploads/:filename', (req: Request, res: Response) => {
+    const filename = req.params.filename;
+    const filePath = path.join(uploadDir, filename);
+    
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        console.error(`Image not found: ${filename}`);
+        return res.status(404).send('Image not found');
+      }
+      res.sendFile(filePath);
+    });
+  });
+  
   // Configure multer for image uploads
   const uploadStorage = multer.diskStorage({
     destination: (req: any, file: any, cb: any) => {
