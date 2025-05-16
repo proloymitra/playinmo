@@ -6,12 +6,16 @@ import {
   Trash2,
   Edit,
   Star,
-  Flame
+  Flame,
+  Globe,
+  FileCode
 } from 'lucide-react';
 
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -48,6 +52,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 
 // Simple game interface
@@ -125,16 +142,65 @@ export default function CMSGamesPage() {
     return category ? category.name : 'Unknown';
   };
   
+  // State for game type selection (URL or HTML package)
+  const [gameType, setGameType] = useState<'url' | 'html'>('url');
+  
+  // Create game mutation for adding new games
+  const createGameMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Use the correct API endpoint
+      let endpoint = '/api/admin/games';
+      let method = 'POST';
+      let body;
+      
+      if (gameType === 'url') {
+        // For URL-based games, send JSON data
+        body = JSON.stringify(data);
+        return fetch(endpoint, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body,
+        });
+      } else {
+        // For HTML package uploads, use FormData
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+          formData.append(key, value as string);
+        });
+        
+        if (data.htmlFile) {
+          formData.append('htmlPackage', data.htmlFile);
+        }
+        
+        endpoint = '/api/admin/games/upload';
+        return fetch(endpoint, {
+          method,
+          body: formData,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Game created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      setIsNewGameDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to create game: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    },
+  });
+  
   // Function to handle adding a new game
-  const handleAddNewGame = () => {
-    // For now, just show a message that we're adding a new game
-    toast({
-      title: "Coming Soon",
-      description: "Adding new games will be available soon!"
-    });
-    
-    // Close the dialog
-    setIsNewGameDialogOpen(false);
+  const handleAddNewGame = (formData: any) => {
+    createGameMutation.mutate(formData);
   };
 
   return (
@@ -271,66 +337,150 @@ export default function CMSGamesPage() {
         </CardContent>
       </Card>
       
-      {/* Simple Add New Game Dialog */}
+      {/* Enhanced Add New Game Dialog with URL and HTML Package options */}
       {isNewGameDialogOpen && (
         <Dialog open={isNewGameDialogOpen} onOpenChange={(open) => !open && setIsNewGameDialogOpen(false)}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Add New Game</DialogTitle>
               <DialogDescription>
-                Add a new game to your platform. This feature is coming soon!
+                Add a new game to your platform using an external URL or by uploading an HTML package
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Title</label>
-                  <Input placeholder="Game title" />
+            <Tabs defaultValue="url" onValueChange={(value) => setGameType(value as 'url' | 'html')}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="url" className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  External URL
+                </TabsTrigger>
+                <TabsTrigger value="html" className="flex items-center gap-2">
+                  <FileCode className="h-4 w-4" />
+                  HTML Package
+                </TabsTrigger>
+              </TabsList>
+              
+              <div className="space-y-6 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Title *</label>
+                    <Input 
+                      id="game-title" 
+                      placeholder="Game title"
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Category *</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category: any) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <option value="">Select a category</option>
-                    {categories.map((category: any) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-sm font-medium">Description *</label>
+                  <Textarea 
+                    placeholder="Provide a description of the game"
+                    className="min-h-[100px]"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Image URL *</label>
+                  <Input 
+                    placeholder="https://example.com/image.jpg"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Provide a URL to an image that will be used as the game thumbnail
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Developer</label>
+                  <Input placeholder="Game developer name" />
+                </div>
+                
+                <TabsContent value="url" className="p-0 m-0 space-y-2">
+                  <label className="text-sm font-medium">Game URL *</label>
+                  <Input 
+                    placeholder="https://example.com/game"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Provide the URL to the external game that will be embedded in an iframe
+                  </p>
+                </TabsContent>
+                
+                <TabsContent value="html" className="p-0 m-0 space-y-2">
+                  <label className="text-sm font-medium">HTML Package *</label>
+                  <Input 
+                    type="file" 
+                    accept=".zip,.html"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Upload a ZIP file containing your HTML game files or a single HTML file
+                  </p>
+                </TabsContent>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Game Instructions</label>
+                  <Textarea 
+                    placeholder="How to play the game"
+                    className="min-h-[80px]"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox id="featured-game" />
+                  <label 
+                    htmlFor="featured-game" 
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Featured Game (displayed on homepage)
+                  </label>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Image URL</label>
-                <Input placeholder="https://example.com/image.jpg" />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Game URL</label>
-                <Input placeholder="https://example.com/game" />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea 
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                  placeholder="Game description"
-                ></textarea>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsNewGameDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleAddNewGame}>
-                Add Game
-              </Button>
-            </DialogFooter>
+              <DialogFooter className="mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsNewGameDialogOpen(false)}
+                  disabled={createGameMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // Collect form data
+                    const formData = {
+                      title: (document.getElementById('game-title') as HTMLInputElement)?.value,
+                      // Add other form fields as needed
+                      gameType: gameType
+                    };
+                    handleAddNewGame(formData);
+                  }}
+                  disabled={createGameMutation.isPending}
+                >
+                  {createGameMutation.isPending ? 
+                    (gameType === 'html' ? 'Uploading...' : 'Creating...') : 
+                    'Add Game'
+                  }
+                </Button>
+              </DialogFooter>
+            </Tabs>
           </DialogContent>
         </Dialog>
       )}
