@@ -52,9 +52,12 @@ export interface IStorage {
   getChatMessages(limit: number): Promise<(ChatMessage & { user: User })[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   
-  // Site Content
-  getSiteContent(): Promise<any>;
-  updateSiteContent(data: any): Promise<any>;
+  // Website Content
+  getWebsiteContent(): Promise<WebsiteContent[]>;
+  getWebsiteContentBySection(section: string): Promise<WebsiteContent[]>;
+  getWebsiteContentItem(section: string, key: string): Promise<WebsiteContent | undefined>;
+  updateWebsiteContent(id: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined>;
+  createWebsiteContent(content: InsertWebsiteContent): Promise<WebsiteContent>;
 }
 
 export class MemStorage implements IStorage {

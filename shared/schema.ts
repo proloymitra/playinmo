@@ -150,3 +150,23 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
 export type GameReview = typeof gameReviews.$inferSelect;
 export type InsertGameReview = z.infer<typeof insertGameReviewSchema>;
+
+// Website Content
+export const websiteContent = pgTable("website_content", {
+  id: serial("id").primaryKey(),
+  section: text("section").notNull(),  // e.g., "hero", "footer", "about"
+  key: text("key").notNull(),          // e.g., "title", "subtitle", "image"
+  value: text("value").notNull(),
+  valueType: text("value_type").notNull().default("text"), // "text", "html", "image", "link"
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+export const insertWebsiteContentSchema = createInsertSchema(websiteContent).pick({
+  section: true,
+  key: true,
+  value: true,
+  valueType: true
+});
+
+export type WebsiteContent = typeof websiteContent.$inferSelect;
+export type InsertWebsiteContent = z.infer<typeof insertWebsiteContentSchema>;
