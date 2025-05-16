@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   PlusCircle, 
@@ -104,10 +104,340 @@ const gameFormSchema = z.object({
   categoryId: z.string().min(1, "Please select a category"),
   developer: z.string().min(2, "Developer name is required"),
   isFeatured: z.boolean().optional(),
+  gameType: z.enum(["url", "html"]),
   externalUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  htmlPackage: z.string().optional(),
+  instructions: z.string().min(10, "Instructions must be at least 10 characters"),
+  releaseDate: z.string().min(1, "Release date is required"),
 })
 
 type GameFormValues = z.infer<typeof gameFormSchema>;
+
+// New Game Dialog
+function NewGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [gameType, setGameType] = useState<'url' | 'html'>('url');
+  
+  const defaultValues = {
+    title: '',
+    description: '',
+    imageUrl: '',
+    categoryId: '',
+    developer: '',
+    isFeatured: false,
+    gameType: 'url' as const,
+    externalUrl: '',
+    htmlPackage: '',
+    instructions: 'Use your mouse or touchscreen to play. Click or tap to interact with the game.',
+    releaseDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+  };
+  
+  const form = useForm<GameFormValues>({
+    resolver: zodResolver(gameFormSchema),
+    defaultValues
+  });
+
+  // Update form when game type changes
+  useEffect(() => {
+    form.setValue('gameType', gameType);
+    
+    // Clear the other field when switching types
+    if (gameType === 'url') {
+      form.setValue('htmlPackage', '');
+    } else {
+      form.setValue('externalUrl', '');
+    }
+  }, [gameType, form]);
+  
+  // Get all categories
+  const { data: categories } = useQuery<any[]>({
+    queryKey: ['/api/categories'],
+  });
+  
+  // Create game mutation
+  const createGameMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/admin/games', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create game');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Game created',
+        description: 'The game has been successfully added',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/games/featured'] });
+      onClose();
+      form.reset(defaultValues);
+    },
+    onError: (error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to create game: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    },
+  });
+  
+  function onSubmit(data: GameFormValues) {
+    // Convert data for the API
+    const submitData = {
+      ...data,
+      categoryId: parseInt(data.categoryId),
+      isFeatured: !!data.isFeatured,
+      releaseDate: new Date(data.releaseDate),
+    };
+    
+    // Make sure only the relevant URL field is sent based on game type
+    if (data.gameType === 'url') {
+      delete submitData.htmlPackage;
+    } else {
+      delete submitData.externalUrl;
+    }
+    
+    createGameMutation.mutate(submitData);
+  }
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Add New Game</DialogTitle>
+          <DialogDescription>
+            Add a new game to your platform. You can either link to an external game URL or upload an HTML game package.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Game title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Game description" {...field} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/image.jpg" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="developer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Developer</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Game developer" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="releaseDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Release Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="instructions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Game Instructions</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="How to play the game" {...field} rows={2} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex flex-col space-y-2">
+              <FormLabel>Game Type</FormLabel>
+              <div className="flex space-x-4">
+                <Button 
+                  type="button" 
+                  variant={gameType === 'url' ? 'default' : 'outline'}
+                  onClick={() => setGameType('url')}
+                  className="flex-1"
+                >
+                  External URL
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={gameType === 'html' ? 'default' : 'outline'}
+                  onClick={() => setGameType('html')}
+                  className="flex-1"
+                >
+                  HTML Package
+                </Button>
+              </div>
+            </div>
+            
+            {gameType === 'url' ? (
+              <FormField
+                control={form.control}
+                name="externalUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Game URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/game" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the full URL to an external game that can be embedded in an iframe.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="htmlPackage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>HTML Game Package</FormLabel>
+                    <FormControl>
+                      <Input placeholder="URL to a ZIP file containing the HTML game" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Provide a URL to a ZIP file containing the HTML game package.
+                      The ZIP should include an index.html file at the root.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            <FormField
+              control={form.control}
+              name="isFeatured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Featured Game</FormLabel>
+                    <FormDescription>
+                      This game will be displayed in the featured games section.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createGameMutation.isPending}
+              >
+                {createGameMutation.isPending ? 'Creating...' : 'Add Game'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // Game Edit Dialog
 function GameEditDialog({ game, isOpen, onClose }: { game: Game | null, isOpen: boolean, onClose: () => void }) {
@@ -344,6 +674,7 @@ export default function CMSGamesPage() {
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Get all games
@@ -413,7 +744,7 @@ export default function CMSGamesPage() {
     <AdminLayout>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Games Management</h1>
-        <Button>
+        <Button onClick={() => setIsNewGameDialogOpen(true)}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Game
         </Button>
