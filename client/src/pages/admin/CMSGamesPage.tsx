@@ -281,7 +281,7 @@ function AddGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                           {categoriesLoading ? (
                             <SelectItem value="loading" disabled>Loading...</SelectItem>
                           ) : (
-                            (categories || []).map((category: any) => (
+                            Array.isArray(categories) && categories.map((category: any) => (
                               <SelectItem key={category.id} value={category.slug}>
                                 {category.name}
                               </SelectItem>
@@ -1419,7 +1419,7 @@ export default function CMSGamesPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {categories?.map((category) => (
+                          {(categories || []).map((category) => (
                             <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
                             </SelectItem>
