@@ -35,36 +35,47 @@ function Router() {
   // Track page views when routes change
   useAnalytics();
   
+  // Check if the current route is an admin route
+  const isAdminRoute = window.location.pathname.startsWith('/cms');
+  
+  // Regular site with header and footer
+  if (!isAdminRoute) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow">
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/games" component={GamesPage} />
+            <Route path="/game/:id" component={GameDetailsPage} />
+            <Route path="/category/:slug" component={CategoryPage} />
+            <Route path="/leaderboard" component={LeaderboardPage} />
+            <Route path="/profile/:id" component={ProfilePage} />
+            <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+            <Route path="/terms-of-service" component={TermsOfServicePage} />
+            <Route path="/cookie-policy" component={CookiePolicyPage} />
+            <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
+            <Route path="/advertise-with-us" component={AdvertiseWithUsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+        <Footer />
+        <CookieConsentBanner />
+      </div>
+    );
+  }
+  
+  // Admin routes without header and footer
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/games" component={GamesPage} />
-          <Route path="/game/:id" component={GameDetailsPage} />
-          <Route path="/category/:slug" component={CategoryPage} />
-          <Route path="/leaderboard" component={LeaderboardPage} />
-          <Route path="/profile/:id" component={ProfilePage} />
-          <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-          <Route path="/terms-of-service" component={TermsOfServicePage} />
-          <Route path="/cookie-policy" component={CookiePolicyPage} />
-          <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
-          <Route path="/advertise-with-us" component={AdvertiseWithUsPage} />
-          
-          {/* CMS Routes */}
-          <Route path="/cms" component={CMSLoginPage} />
-          <Route path="/cms/dashboard" component={CMSDashboardPage} />
-          <Route path="/cms/games" component={CMSGamesPage} />
-          <Route path="/cms/categories" component={CMSCategoriesPage} />
-          <Route path="/cms/website-content" component={CMSWebsiteContentPage} />
-          
-          {/* Fallback to 404 */}
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
-      <CookieConsentBanner />
+    <div>
+      <Switch>
+        <Route path="/cms" component={CMSLoginPage} />
+        <Route path="/cms/dashboard" component={CMSDashboardPage} />
+        <Route path="/cms/games" component={CMSGamesPage} />
+        <Route path="/cms/categories" component={CMSCategoriesPage} />
+        <Route path="/cms/website-content" component={CMSWebsiteContentPage} />
+        <Route component={NotFound} />
+      </Switch>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Link } from 'wouter';
 import { 
   BarChart, 
   Gamepad2, 
@@ -31,48 +32,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="text-xl font-bold mb-6">PlayinMO CMS</div>
         <nav className="space-y-2">
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <Home className="h-5 w-5" />
               Main Site
-            </a>
+            </Link>
           </Button>
           <Separator className="my-2" />
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/dashboard" className="flex items-center gap-2">
+            <Link href="/cms/dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-5 w-5" />
               Dashboard
-            </a>
+            </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/games" className="flex items-center gap-2">
+            <Link href="/cms/games" className="flex items-center gap-2">
               <Gamepad2 className="h-5 w-5" />
               Games
-            </a>
+            </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/categories" className="flex items-center gap-2">
+            <Link href="/cms/categories" className="flex items-center gap-2">
               <BarChart className="h-5 w-5" />
               Categories
-            </a>
+            </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/website-content" className="flex items-center gap-2">
+            <Link href="/cms/website-content" className="flex items-center gap-2">
               <FileEdit className="h-5 w-5" />
               Website Content
-            </a>
+            </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/users" className="flex items-center gap-2">
+            <Link href="/cms/users" className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Users
-            </a>
+            </Link>
           </Button>
           <Separator className="my-4" />
           <Button variant="ghost" className="w-full justify-start" asChild>
-            <a href="/cms/settings" className="flex items-center gap-2">
+            <Link href="/cms/settings" className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Settings
-            </a>
+            </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start text-red-400" onClick={handleLogout}>
             <LogOut className="h-5 w-5 mr-2" />
