@@ -813,8 +813,11 @@ export default function CMSGamesPage() {
               >
                 Cancel
               </Button>
-              <Button>
-                Save Changes
+              <Button 
+                onClick={handleEditGameSubmit}
+                disabled={updateGameMutation.isPending}
+              >
+                {updateGameMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </DialogContent>
