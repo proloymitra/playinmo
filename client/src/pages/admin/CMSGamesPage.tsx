@@ -111,8 +111,8 @@ const newGameSchema = z.object({
   isFeatured: z.boolean().default(false),
 });
 
-// New Game Dialog component
-function NewGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+// Add Game Dialog component
+function AddGameDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const queryClient = useQueryClient();
   const [gameType, setGameType] = useState<'url' | 'html'>('url');
   const [isUploading, setIsUploading] = useState(false);
@@ -1585,10 +1585,12 @@ export default function CMSGamesPage() {
       </Card>
       
       {/* New Game Dialog */}
-      <NewGameDialog
-        isOpen={isNewGameDialogOpen}
-        onClose={() => setIsNewGameDialogOpen(false)}
-      />
+      {isNewGameDialogOpen && (
+        <AddGameDialog
+          isOpen={isNewGameDialogOpen}
+          onClose={() => setIsNewGameDialogOpen(false)}
+        />
+      )}
       
       {/* Edit Game Dialog */}
       {gameToEdit && (
