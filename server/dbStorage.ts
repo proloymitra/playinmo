@@ -489,41 +489,146 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  // Site content management
-  private siteContent = {
-    hero: {
-      title: "PlayinMO - Your Web Gaming Destination",
-      subtitle: "Play the best browser games online - free, instantly, and without downloads.",
-      ctaText: "Play Now"
-    },
-    featured: {
-      title: "Featured Games",
-      subtitle: "Check out our most popular and exciting games"
-    },
-    categories: {
-      title: "Game Categories",
-      subtitle: "Find your favorite type of games"
-    },
-    about: {
-      title: "About PlayinMO",
-      content: "PlayinMO is your web gaming destination for AI-powered games that you can play right in your browser. No downloads, no waiting - just instant fun!"
-    }
-  };
+  // Website Content Management
+  async getWebsiteContent(): Promise<WebsiteContent[]> {
+    return await db.select().from(websiteContent).orderBy(asc(websiteContent.section), asc(websiteContent.key));
+  }
   
+  async getWebsiteContentBySection(section: string): Promise<WebsiteContent[]> {
+    return await db.select().from(websiteContent)
+      .where(eq(websiteContent.section, section))
+      .orderBy(asc(websiteContent.key));
+  }
+  
+  async getWebsiteContentItem(section: string, key: string): Promise<WebsiteContent | undefined> {
+    const [content] = await db.select().from(websiteContent)
+      .where(and(
+        eq(websiteContent.section, section),
+        eq(websiteContent.key, key)
+      ));
+    return content;
+  }
+  
+  async updateWebsiteContent(id: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined> {
+    try {
+      const [updated] = await db
+        .update(websiteContent)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(websiteContent.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating website content:", error);
+      return undefined;
+    }
+  }
+  
+  async createWebsiteContent(content: InsertWebsiteContent): Promise<WebsiteContent> {
+    const [created] = await db
+      .insert(websiteContent)
+      .values({
+        ...content,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return created;
+  }
+  
+  // For backward compatibility with existing code
   async getSiteContent(): Promise<any> {
-    // In a real implementation, this would be stored in the database
-    // For now, returning the hardcoded content
-    return this.siteContent;
+    // Convert flat database records to the nested structure expected by the frontend
+    const allContent = await this.getWebsiteContent();
+    
+    // Transform the flat content list to a nested structure for backward compatibility
+    const siteContent: Record<string, Record<string, any>> = {};
+    
+    for (const item of allContent) {
+      if (!siteContent[item.section]) {
+        siteContent[item.section] = {};
+      }
+      siteContent[item.section][item.key] = item.value;
+    }
+    
+    // Provide fallback values for essential sections if they don't exist in the database
+    const defaultContent = {
+      hero: {
+        title: "PlayinMO - Your Web Gaming Destination",
+        subtitle: "Play the best browser games online - free, instantly, and without downloads.",
+        ctaText: "Play Now"
+      },
+      featured: {
+        title: "Featured Games",
+        subtitle: "Check out our most popular and exciting games"
+      },
+      categories: {
+        title: "Game Categories",
+        subtitle: "Find your favorite type of games"
+      },
+      about: {
+        title: "About PlayinMO",
+        content: "PlayinMO is your web gaming destination for AI-powered games that you can play right in your browser. No downloads, no waiting - just instant fun!"
+      }
+    };
+    
+    // Merge with defaults to ensure all expected keys exist
+    for (const section in defaultContent) {
+      if (!siteContent[section]) {
+        siteContent[section] = {};
+      }
+      
+      for (const key in defaultContent[section]) {
+        if (!siteContent[section][key]) {
+          siteContent[section][key] = defaultContent[section][key];
+          
+          // Also create this item in the database for future use
+          this.createWebsiteContent({
+            section,
+            key,
+            value: defaultContent[section][key],
+            valueType: typeof defaultContent[section][key] === 'string' && 
+              (defaultContent[section][key].startsWith('http') || defaultContent[section][key].startsWith('/')) 
+              ? 'image' : 'text'
+          }).catch(err => console.error(`Error creating default website content for ${section}.${key}:`, err));
+        }
+      }
+    }
+    
+    return siteContent;
   }
   
   async updateSiteContent(data: any): Promise<any> {
-    // In a real implementation, this would update a database table
-    // For now, just updating the in-memory object
-    this.siteContent = {
-      ...this.siteContent,
-      ...data
-    };
-    return this.siteContent;
+    try {
+      // Convert nested structure to flat entries and update each one
+      for (const section in data) {
+        for (const key in data[section]) {
+          const value = data[section][key];
+          
+          // Find if this content already exists
+          const existing = await this.getWebsiteContentItem(section, key);
+          
+          if (existing) {
+            // Update existing content
+            await this.updateWebsiteContent(existing.id, {
+              value: value.toString()
+            });
+          } else {
+            // Create new content
+            await this.createWebsiteContent({
+              section,
+              key,
+              value: value.toString(),
+              valueType: typeof value === 'string' && (value.startsWith('http') || value.startsWith('/')) ? 'image' : 'text'
+            });
+          }
+        }
+      }
+      
+      return this.getSiteContent();
+    } catch (error) {
+      console.error("Error updating site content:", error);
+      return data; // Return original data on error
+    }
   }
 }
 
