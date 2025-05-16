@@ -517,6 +517,7 @@ function GameCreateDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
   // Create game mutation
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Creating game with data:", data);
       // Use the correct API endpoint
       const response = await fetch('/api/games', {
         method: 'POST',
@@ -1633,7 +1634,7 @@ export default function CMSGamesPage() {
       
       {/* New Game Dialog */}
       {isNewGameDialogOpen && (
-        <AddGameDialog
+        <GameCreateDialog
           isOpen={isNewGameDialogOpen}
           onClose={() => setIsNewGameDialogOpen(false)}
         />
