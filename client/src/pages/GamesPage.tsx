@@ -36,7 +36,7 @@ export default function GamesPage() {
       game.description.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Get category slug from categories list based on categoryId
-    const gameCategory = categories.find(cat => cat.id === game.categoryId)?.slug;
+    const gameCategory = categories?.find(cat => cat.id === game.categoryId)?.slug;
     
     // Filter by category
     const matchesCategory = selectedCategory === "all" || 
