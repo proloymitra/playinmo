@@ -114,18 +114,26 @@ export const configurePassport = (app: Express) => {
             if (!user) {
               // If the user doesn't exist, create a new user
               const email = profile.emails && profile.emails[0] ? profile.emails[0].value : '';
-              const displayName = profile.displayName || email.split('@')[0];
+              const baseUsername = profile.displayName || email.split('@')[0];
               const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
 
+              // Generate a unique username by checking for existing usernames
+              let username = baseUsername;
+              let counter = 1;
+              while (await storage.getUserByUsername(username)) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+              }
+
               console.log('Creating new user with data:', {
-                username: displayName,
+                username,
                 email,
                 googleId: profile.id,
                 avatarUrl: photoUrl,
               });
 
               user = await storage.createUser({
-                username: displayName,
+                username,
                 email,
                 googleId: profile.id,
                 avatarUrl: photoUrl,
