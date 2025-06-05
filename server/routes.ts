@@ -354,25 +354,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send chat message
-  app.post("/api/chat", async (req, res) => {
+  // Send chat message (authenticated users only)
+  app.post("/api/chat", isAuthenticated, async (req: any, res) => {
     try {
-      const messageData = insertChatMessageSchema.parse(req.body);
-      const message = await storage.createChatMessage(messageData);
+      const userId = req.user.id;
+      const { message } = req.body;
       
-      const user = await storage.getUser(message.userId);
+      if (!message || message.trim().length === 0) {
+        return res.status(400).json({ message: "Message cannot be empty" });
+      }
+      
+      const messageData = {
+        userId,
+        message: message.trim()
+      };
+      
+      const newMessage = await storage.createChatMessage(messageData);
+      
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       
       res.status(201).json({
-        ...message,
+        ...newMessage,
         user
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid message data", errors: error.errors });
-      }
+      console.error('Chat message error:', error);
       res.status(500).json({ message: "Failed to send message" });
     }
   });

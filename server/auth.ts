@@ -27,7 +27,8 @@ export const configureSession = (app: Express) => {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for development on Replit
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 1 day
       },
     })
@@ -198,6 +199,11 @@ export const configurePassport = (app: Express) => {
   });
 
   app.get('/api/auth/user', (req, res) => {
+    console.log('Auth check - Session ID:', req.sessionID);
+    console.log('Auth check - Is authenticated:', req.isAuthenticated());
+    console.log('Auth check - User:', req.user);
+    console.log('Auth check - Session:', req.session);
+    
     if (req.isAuthenticated()) {
       res.json(req.user);
     } else {
