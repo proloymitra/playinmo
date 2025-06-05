@@ -47,11 +47,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const filename = req.params.filename;
     const filePath = path.join(uploadDir, filename);
     
+    // Add CORS headers for image serving
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
     fs.access(filePath, fs.constants.F_OK, (err) => {
       if (err) {
         console.error(`Image not found: ${filename}`);
         return res.status(404).send('Image not found');
       }
+      
+      // Set appropriate content type based on file extension
+      const ext = path.extname(filename).toLowerCase();
+      const mimeTypes = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp'
+      };
+      
+      const contentType = (mimeTypes as any)[ext] || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
       res.sendFile(filePath);
     });
   });
@@ -198,6 +216,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl,
         categoryId: gameCategory.id,
         isFeatured: isFeatured === true || isFeatured === 'true',
+        plays: 0,
+        rating: 0,
         releaseDate: new Date(),
         developer: 'PlayinMO',
         instructions: 'Use arrow keys to move, space to jump.',
