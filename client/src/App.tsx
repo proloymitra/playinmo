@@ -14,6 +14,7 @@ import GameDetailsPage from "@/pages/GameDetailsPage";
 import CategoryPage from "@/pages/CategoryPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import ProfilePage from "@/pages/ProfilePage";
+import LoginPage from "@/pages/LoginPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import CookiePolicyPage from "@/pages/CookiePolicyPage";
@@ -51,6 +52,7 @@ function Router() {
             <Route path="/category/:slug" component={CategoryPage} />
             <Route path="/leaderboard" component={LeaderboardPage} />
             <Route path="/profile/:id" component={ProfilePage} />
+            <Route path="/login" component={LoginPage} />
             <Route path="/privacy-policy" component={PrivacyPolicyPage} />
             <Route path="/terms-of-service" component={TermsOfServicePage} />
             <Route path="/cookie-policy" component={CookiePolicyPage} />

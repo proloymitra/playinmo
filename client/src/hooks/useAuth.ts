@@ -1,100 +1,53 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import { apiRequest } from "../lib/queryClient";
-
-interface LoginCredentials {
-  username: string;
-  password: string;
-}
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useAuth() {
   const queryClient = useQueryClient();
   
-  const {
-    data: user,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ["/api/auth/user"],
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/auth/user", {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            return null;
-          }
-          throw new Error('Failed to fetch user data');
-        }
-        
-        return await response.json();
-      } catch (error) {
-        // If unauthorized or any other error, return null
-        return null;
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false
-  });
-
-  const isAuthenticated = !!user;
-
-  // Local login mutation
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials),
+      const response = await fetch('/api/auth/user', {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        if (response.status === 401) {
+          return null; // Not authenticated
+        }
+        throw new Error('Failed to fetch user');
       }
       
-      return await response.json() as User;
+      return response.json();
     },
-    onSuccess: (userData) => {
-      // Update the user data in the cache
-      queryClient.setQueryData(["/api/auth/user"], userData);
-    }
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const login = async (username: string, password: string) => {
+  const logout = async () => {
     try {
-      await loginMutation.mutateAsync({ username, password });
-      return true;
+      await fetch('/api/auth/logout', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      // Clear the user query cache
+      queryClient.setQueryData(['/api/auth/user'], null);
+      
+      // Redirect to home page
+      window.location.href = '/';
     } catch (error) {
-      return false;
+      console.error('Logout error:', error);
+      // Even if logout fails, clear local state and redirect
+      queryClient.setQueryData(['/api/auth/user'], null);
+      window.location.href = '/';
     }
-  };
-
-  const loginWithGoogle = () => {
-    // Redirect to Google login if available
-    window.location.href = "/api/auth/google";
-  };
-
-  const logout = () => {
-    // Redirect to logout endpoint
-    window.location.href = "/api/auth/logout";
   };
 
   return {
     user,
     isLoading,
-    isError: !!error,
-    isAuthenticated,
-    login,
-    loginWithGoogle,
+    isAuthenticated: !!user,
     logout,
-    loginMutation,
-    refetch
+    error
   };
 }

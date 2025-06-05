@@ -109,7 +109,7 @@ export default function Header() {
               {!isAuthenticated ? (
                 <Button
                   className="hidden sm:inline-flex bg-primary text-white hover:bg-primary/90"
-                  onClick={() => window.location.href = '/api/auth/login'}
+                  onClick={() => window.location.href = '/login'}
                 >
                   Sign In
                 </Button>
@@ -161,10 +161,10 @@ export default function Header() {
                     </>
                   ) : (
                     <>
-                      <DropdownMenuItem onClick={() => window.location.href = '/api/auth/login'}>
+                      <DropdownMenuItem onClick={() => window.location.href = '/login'}>
                         Sign In
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => window.location.href = '/api/auth/login'}>
+                      <DropdownMenuItem onClick={() => window.location.href = '/login'}>
                         Register
                       </DropdownMenuItem>
                     </>
