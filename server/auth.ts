@@ -123,6 +123,11 @@ export const configurePassport = (app: Express) => {
     // Authentication routes - only add if Google auth is configured
     app.get(
       '/api/auth/google',
+      (req, res, next) => {
+        console.log('Google OAuth initiated from:', req.get('host'));
+        console.log('Full URL:', `${req.protocol}://${req.get('host')}/api/auth/google/callback`);
+        next();
+      },
       passport.authenticate('google', { scope: ['profile', 'email'] })
     );
 
