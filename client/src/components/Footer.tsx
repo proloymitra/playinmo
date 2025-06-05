@@ -45,24 +45,24 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">Categories</h3>
             <ul className="space-y-2">
-              <li><Link href="/category/action"><a className="text-gray-400 hover:text-white transition-colors">Action Games</a></Link></li>
-              <li><Link href="/category/adventure"><a className="text-gray-400 hover:text-white transition-colors">Adventure Games</a></Link></li>
-              <li><Link href="/category/puzzle"><a className="text-gray-400 hover:text-white transition-colors">Puzzle Games</a></Link></li>
-              <li><Link href="/category/strategy"><a className="text-gray-400 hover:text-white transition-colors">Strategy Games</a></Link></li>
-              <li><Link href="/category/racing"><a className="text-gray-400 hover:text-white transition-colors">Racing Games</a></Link></li>
-              <li><Link href="/category/sports"><a className="text-gray-400 hover:text-white transition-colors">Sports Games</a></Link></li>
+              <li><Link href="/category/action" className="text-gray-400 hover:text-white transition-colors">Action Games</Link></li>
+              <li><Link href="/category/adventure" className="text-gray-400 hover:text-white transition-colors">Adventure Games</Link></li>
+              <li><Link href="/category/puzzle" className="text-gray-400 hover:text-white transition-colors">Puzzle Games</Link></li>
+              <li><Link href="/category/strategy" className="text-gray-400 hover:text-white transition-colors">Strategy Games</Link></li>
+              <li><Link href="/category/racing" className="text-gray-400 hover:text-white transition-colors">Racing Games</Link></li>
+              <li><Link href="/category/sports" className="text-gray-400 hover:text-white transition-colors">Sports Games</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link href="/"><a className="text-gray-400 hover:text-white transition-colors">Home</a></Link></li>
-              <li><Link href="/about"><a className="text-gray-400 hover:text-white transition-colors">About Us</a></Link></li>
-              <li><Link href="/category/new"><a className="text-gray-400 hover:text-white transition-colors">New Games</a></Link></li>
-              <li><Link href="/leaderboard"><a className="text-gray-400 hover:text-white transition-colors">Leaderboards</a></Link></li>
-              <li><Link href="/contact"><a className="text-gray-400 hover:text-white transition-colors">Contact Us</a></Link></li>
-              <li><Link href="/help"><a className="text-gray-400 hover:text-white transition-colors">Help Center</a></Link></li>
+              <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/category/new" className="text-gray-400 hover:text-white transition-colors">New Games</Link></li>
+              <li><Link href="/leaderboard" className="text-gray-400 hover:text-white transition-colors">Leaderboards</Link></li>
+              <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link href="/help" className="text-gray-400 hover:text-white transition-colors">Help Center</Link></li>
             </ul>
           </div>
           
@@ -85,11 +85,11 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 mb-4 md:mb-0">© 2025 PlayinMO. All rights reserved.</p>
           <div className="flex flex-wrap gap-4 md:gap-6">
-            <Link href="/privacy-policy"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Privacy Policy</a></Link>
-            <Link href="/terms-of-service"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Terms of Service</a></Link>
-            <Link href="/cookie-policy"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Cookie Policy</a></Link>
-            <Link href="/responsible-gaming"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Responsible Gaming</a></Link>
-            <Link href="/advertise-with-us"><a className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Advertise With Us</a></Link>
+            <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Terms of Service</Link>
+            <Link href="/cookie-policy" className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Cookie Policy</Link>
+            <Link href="/responsible-gaming" className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Responsible Gaming</Link>
+            <Link href="/advertise-with-us" className="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Advertise With Us</Link>
             <a 
               href="https://policies.google.com/technologies/partner-sites" 
               target="_blank" 
