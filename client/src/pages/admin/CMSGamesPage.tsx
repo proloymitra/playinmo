@@ -732,9 +732,11 @@ export default function CMSGamesPage() {
                                   body: formData,
                                   credentials: 'include'
                                 })
-                                .then(response => {
+                                .then(async response => {
                                   if (!response.ok) {
-                                    throw new Error('Image upload failed');
+                                    const errorText = await response.text();
+                                    console.error('Upload error:', response.status, errorText);
+                                    throw new Error(`Image upload failed: ${response.status} - ${errorText}`);
                                   }
                                   return response.json();
                                 })

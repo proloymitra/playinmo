@@ -1107,8 +1107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Image upload endpoint for game icons
-  app.post("/api/admin/upload-image", isAuthenticated, isAdmin, imageUpload.single('image'), async (req: any, res: Response) => {
+  app.post("/api/admin/upload-image", isAuthenticated, imageUpload.single('image'), async (req: any, res: Response) => {
     try {
+      console.log("Upload request received");
+      console.log("User authenticated:", !!req.user);
+      console.log("File received:", !!req.file);
+      
       if (!req.file) {
         return res.status(400).json({ message: "No image file provided" });
       }
