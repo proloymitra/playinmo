@@ -42,14 +42,18 @@ export const configurePassport = (app: Express) => {
 
   // Serialize and deserialize user
   passport.serializeUser((user: any, done) => {
+    console.log('Serializing user:', user);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('Deserializing user with ID:', id);
       const user = await storage.getUser(id);
+      console.log('Deserialized user:', user);
       done(null, user);
     } catch (error) {
+      console.error('Error deserializing user:', error);
       done(error, null);
     }
   });
@@ -95,8 +99,16 @@ export const configurePassport = (app: Express) => {
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
+            console.log('Google OAuth profile received:', {
+              id: profile.id,
+              displayName: profile.displayName,
+              emails: profile.emails,
+              photos: profile.photos
+            });
+
             // Check if user exists in the database
             let user = await storage.getUserByGoogleId(profile.id);
+            console.log('Existing user found:', user ? 'Yes' : 'No');
 
             if (!user) {
               // If the user doesn't exist, create a new user
@@ -104,16 +116,27 @@ export const configurePassport = (app: Express) => {
               const displayName = profile.displayName || email.split('@')[0];
               const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
 
+              console.log('Creating new user with data:', {
+                username: displayName,
+                email,
+                googleId: profile.id,
+                avatarUrl: photoUrl,
+              });
+
               user = await storage.createUser({
                 username: displayName,
                 email,
                 googleId: profile.id,
                 avatarUrl: photoUrl,
               });
+              
+              console.log('New user created:', user);
             }
 
+            console.log('Returning user to passport:', user);
             return done(null, user);
           } catch (error) {
+            console.error('Google OAuth error:', error);
             return done(error as Error, undefined);
           }
         }
@@ -133,8 +156,11 @@ export const configurePassport = (app: Express) => {
 
     app.get(
       '/api/auth/google/callback',
-      passport.authenticate('google', { failureRedirect: '/' }),
+      passport.authenticate('google', { failureRedirect: '/login?error=oauth_failed' }),
       (req, res) => {
+        console.log('Google OAuth callback successful, user:', req.user);
+        console.log('Session ID:', req.sessionID);
+        console.log('Is authenticated:', req.isAuthenticated());
         res.redirect('/');
       }
     );
