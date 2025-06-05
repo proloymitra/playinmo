@@ -263,6 +263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl,
         categoryId: gameCategory.id,
         isFeatured: isFeatured === true || isFeatured === 'true',
+        plays: 0,
+        rating: 0,
         releaseDate: new Date(),
         developer: 'PlayinMO',
         instructions: 'Use arrow keys to move, space to jump.',
