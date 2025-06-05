@@ -68,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '.webp': 'image/webp'
       };
       
-      const contentType = (mimeTypes as any)[ext] || 'application/octet-stream';
+      const contentType: string = mimeTypes[ext as keyof typeof mimeTypes] || 'application/octet-stream';
       res.setHeader('Content-Type', contentType);
       res.sendFile(filePath);
     });
