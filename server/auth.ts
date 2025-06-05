@@ -81,12 +81,17 @@ export const configurePassport = (app: Express) => {
   
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
+    
+    // Use the current request host for callback URL to ensure it matches
+    const callbackURL = '/api/auth/google/callback';
+    console.log('Google OAuth callback URL:', callbackURL);
+    
     passport.use(
       new GoogleStrategy(
         {
           clientID: googleClientId,
           clientSecret: googleClientSecret,
-          callbackURL: '/api/auth/google/callback',
+          callbackURL: callbackURL,
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
