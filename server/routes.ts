@@ -148,6 +148,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/games/category/:category", async (req, res) => {
     try {
       const category = req.params.category;
+      
+      // Special handling for "new" category - show games from last 7 days
+      if (category === 'new') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const allGames = await storage.getGames();
+        const newGames = allGames.filter(game => 
+          new Date(game.createdAt) >= sevenDaysAgo
+        ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
+        return res.json(newGames);
+      }
+      
       const games = await storage.getGamesByCategory(category);
       res.json(games);
     } catch (error) {

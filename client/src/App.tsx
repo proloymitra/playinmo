@@ -15,6 +15,9 @@ import CategoryPage from "@/pages/CategoryPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import ProfilePage from "@/pages/ProfilePage";
 import LoginPage from "@/pages/LoginPage";
+import AboutPage from "@/pages/AboutPage";
+import ContactPage from "@/pages/ContactPage";
+import HelpPage from "@/pages/HelpPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import CookiePolicyPage from "@/pages/CookiePolicyPage";
@@ -53,6 +56,9 @@ function Router() {
             <Route path="/leaderboard" component={LeaderboardPage} />
             <Route path="/profile/:id" component={ProfilePage} />
             <Route path="/login" component={LoginPage} />
+            <Route path="/about" component={AboutPage} />
+            <Route path="/contact" component={ContactPage} />
+            <Route path="/help" component={HelpPage} />
             <Route path="/privacy-policy" component={PrivacyPolicyPage} />
             <Route path="/terms-of-service" component={TermsOfServicePage} />
             <Route path="/cookie-policy" component={CookiePolicyPage} />
