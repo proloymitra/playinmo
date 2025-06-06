@@ -101,7 +101,12 @@ export default function CMSWebsiteContentPage() {
 
   // Get unique sections for tabs
   const sections = allContent 
-    ? [...new Set(allContent.map(item => item.section))]
+    ? allContent.reduce((acc: string[], item) => {
+        if (!acc.includes(item.section)) {
+          acc.push(item.section);
+        }
+        return acc;
+      }, [])
     : [];
 
   // Filter content based on active tab and search query
@@ -218,18 +223,34 @@ export default function CMSWebsiteContentPage() {
   function ContentEditDialog() {
     const form = useForm<ContentFormValues>({
       resolver: zodResolver(contentFormSchema),
-      defaultValues: editItem ? {
-        section: editItem.section,
-        key: editItem.key,
-        value: editItem.value,
-        valueType: editItem.valueType,
-      } : {
+      defaultValues: {
         section: '',
         key: '',
         value: '',
         valueType: 'text',
       }
     });
+
+    // Reset form when editItem changes or dialog opens
+    useEffect(() => {
+      if (isDialogOpen) {
+        if (editItem) {
+          form.reset({
+            section: editItem.section,
+            key: editItem.key,
+            value: editItem.value,
+            valueType: editItem.valueType,
+          });
+        } else {
+          form.reset({
+            section: '',
+            key: '',
+            value: '',
+            valueType: 'text',
+          });
+        }
+      }
+    }, [editItem, isDialogOpen, form]);
 
     // Handle form submission
     function onSubmit(data: ContentFormValues) {
@@ -258,7 +279,10 @@ export default function CMSWebsiteContentPage() {
 
     return (
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
-        if (!open) setIsDialogOpen(false);
+        if (!open) {
+          setIsDialogOpen(false);
+          setEditItem(null);
+        }
       }}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
