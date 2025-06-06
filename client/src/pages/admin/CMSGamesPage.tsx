@@ -668,18 +668,17 @@ export default function CMSGamesPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select defaultValue={gameToEdit.categoryId.toString()}>
-                    <SelectTrigger id="edit-game-category">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((category: any) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select 
+                    id="edit-game-category" 
+                    defaultValue={gameToEdit.categoryId.toString()}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {categories?.map((category: any) => (
+                      <option key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               
@@ -898,13 +897,17 @@ export default function CMSGamesPage() {
                     body: JSON.stringify(updatePayload),
                     credentials: 'include'
                   })
-                  .then(response => {
+                  .then(async response => {
+                    const responseData = await response.json();
+                    console.log('Update response:', response.status, responseData);
+                    
                     if (!response.ok) {
-                      throw new Error('Failed to update game');
+                      throw new Error(responseData.message || 'Failed to update game');
                     }
-                    return response.json();
+                    return responseData;
                   })
-                  .then(() => {
+                  .then((data) => {
+                    console.log('Game updated successfully:', data);
                     toast({
                       title: "Success",
                       description: "Game updated successfully"
@@ -917,7 +920,7 @@ export default function CMSGamesPage() {
                     toast({
                       variant: "destructive",
                       title: "Error",
-                      description: "Failed to update game"
+                      description: error.message || "Failed to update game"
                     });
                   });
                 }}

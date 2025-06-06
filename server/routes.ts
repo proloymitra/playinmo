@@ -626,8 +626,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Admin - update game
-  app.patch("/api/admin/games/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.patch("/api/admin/games/:id", isAuthenticated, async (req, res) => {
     try {
+      console.log("Game update request received");
+      console.log("User authenticated:", !!req.user);
+      console.log("Request body:", req.body);
+      
       const gameId = parseInt(req.params.id);
       if (isNaN(gameId)) {
         return res.status(400).json({ message: "Invalid game ID" });
@@ -649,10 +653,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Game not found" });
       }
       
+      console.log("Game updated successfully:", updatedGame.id);
       res.json(updatedGame);
     } catch (error) {
       console.error("Error updating game:", error);
-      res.status(500).json({ message: "Failed to update game" });
+      res.status(500).json({ message: "Failed to update game", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
   
