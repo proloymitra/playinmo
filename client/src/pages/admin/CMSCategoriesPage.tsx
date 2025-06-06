@@ -40,6 +40,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
 
 interface Category {
@@ -50,10 +62,27 @@ interface Category {
   imageUrl: string;
 }
 
+const categoryFormSchema = z.object({
+  name: z.string().min(1, "Category name is required"),
+  description: z.string().min(1, "Description is required"),
+  imageUrl: z.string().url("Please enter a valid URL").optional().or(z.literal(""))
+});
+
 export default function CMSCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
   const queryClient = useQueryClient();
+
+  const form = useForm<z.infer<typeof categoryFormSchema>>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      imageUrl: ""
+    }
+  });
 
   // Get all categories
   const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
@@ -63,6 +92,42 @@ export default function CMSCategoriesPage() {
   // Get all games (to count games per category)
   const { data: games } = useQuery<any[]>({
     queryKey: ['/api/games'],
+  });
+
+  // Add category mutation
+  const addCategoryMutation = useMutation({
+    mutationFn: async (categoryData: { name: string; description: string; imageUrl: string }) => {
+      const response = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...categoryData,
+          slug: categoryData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+        }),
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create category');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Category created successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create category',
+      });
+    },
   });
   
   // Delete category mutation
@@ -111,7 +176,7 @@ export default function CMSCategoriesPage() {
     <AdminLayout>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Categories Management</h1>
-        <Button>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Add Category
         </Button>
