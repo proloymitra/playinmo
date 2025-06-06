@@ -1090,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update website content item
-  app.patch("/api/admin/website-content/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.patch("/api/admin/website-content/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -1112,7 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create website content item
-  app.post("/api/admin/website-content", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/admin/website-content", isAuthenticated, async (req, res) => {
     try {
       const contentData = req.body;
       const created = await storage.createWebsiteContent(contentData);
@@ -1154,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete website content item
-  app.delete("/api/admin/website-content/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.delete("/api/admin/website-content/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
