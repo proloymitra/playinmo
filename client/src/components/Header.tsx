@@ -90,6 +90,8 @@ export default function Header() {
             <NavItem href="/category/action" label="Categories" currentPath={location} />
             <NavItem href="/category/new" label="New Games" currentPath={location} />
             <NavItem href="/leaderboard" label="Leaderboards" currentPath={location} />
+            <NavItem href="/achievements" label="Achievements" currentPath={location} />
+            <NavItem href="/rewards" label="Rewards" currentPath={location} />
           </nav>
 
           {/* Actions */}
