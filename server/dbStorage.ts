@@ -853,3 +853,143 @@ export async function initializeDatabase() {
     throw error;
   }
 }
+
+  // Email tracking methods
+  async logEmail(emailLog: InsertEmailLog): Promise<EmailLog> {
+    const [created] = await db
+      .insert(emailLogs)
+      .values(emailLog)
+      .returning();
+    return created;
+  }
+
+  async updateEmailStatus(emailId: number, status: string, timestamp?: Date): Promise<EmailLog | undefined> {
+    try {
+      const updateData: any = { status };
+      
+      if (status === 'delivered' && timestamp) {
+        updateData.deliveredAt = timestamp;
+      } else if (status === 'opened' && timestamp) {
+        updateData.openedAt = timestamp;
+      } else if (status === 'clicked' && timestamp) {
+        updateData.clickedAt = timestamp;
+      }
+
+      const [updated] = await db
+        .update(emailLogs)
+        .set(updateData)
+        .where(eq(emailLogs.id, emailId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating email status:", error);
+      return undefined;
+    }
+  }
+
+  async getEmailLogs(userId: number): Promise<EmailLog[]> {
+    return await db
+      .select()
+      .from(emailLogs)
+      .where(eq(emailLogs.userId, userId))
+      .orderBy(desc(emailLogs.sentAt));
+  }
+
+  async getEmailLogsByType(emailType: string): Promise<EmailLog[]> {
+    return await db
+      .select()
+      .from(emailLogs)
+      .where(eq(emailLogs.emailType, emailType))
+      .orderBy(desc(emailLogs.sentAt));
+  }
+
+  async trackEmailOpen(email: string): Promise<boolean> {
+    try {
+      const [emailLog] = await db
+        .select()
+        .from(emailLogs)
+        .where(and(
+          eq(emailLogs.recipientEmail, email),
+          eq(emailLogs.status, 'sent')
+        ))
+        .orderBy(desc(emailLogs.sentAt))
+        .limit(1);
+
+      if (emailLog) {
+        await this.updateEmailStatus(emailLog.id, 'opened', new Date());
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error tracking email open:", error);
+      return false;
+    }
+  }
+
+  // User management methods for admin
+  async getAllUsers(limit: number = 100, offset: number = 0): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(users.createdAt));
+  }
+
+  async getUserStats(): Promise<{ total: number; active: number; googleUsers: number; manualUsers: number }> {
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
+    
+    const activeResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.isActive, true));
+    
+    const googleResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.registrationSource, 'google'));
+    
+    const manualResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.registrationSource, 'manual'));
+
+    return {
+      total: totalResult[0]?.count || 0,
+      active: activeResult[0]?.count || 0,
+      googleUsers: googleResult[0]?.count || 0,
+      manualUsers: manualResult[0]?.count || 0
+    };
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+    try {
+      const [updated] = await db
+        .update(users)
+        .set(data)
+        .where(eq(users.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return undefined;
+    }
+  }
+
+  async deactivateUser(id: number): Promise<boolean> {
+    try {
+      const [updated] = await db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.id, id))
+        .returning();
+      return !!updated;
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      return false;
+    }
+  }
+
+export const dbStorage = new DatabaseStorage();

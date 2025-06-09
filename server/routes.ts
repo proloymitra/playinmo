@@ -19,7 +19,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { generateOTP, generateSecret, getOTPExpiry, sendOTPEmail } from "./emailService";
+import { generateOTP, generateSecret, getOTPExpiry, sendOTPEmail, sendWelcomeEmail } from "./emailService";
 
 // Extend Express Request type to include user property
 declare global {
@@ -1432,6 +1432,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting reward:", error);
       res.status(500).json({ message: "Failed to delete reward" });
+    }
+  });
+
+  // User Management API Routes for Admin
+
+  // Get all users with pagination
+  app.get("/api/admin/users", isAuthenticated, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const users = await storage.getAllUsers(limit, offset);
+      const stats = await storage.getUserStats();
+      
+      res.json({ users, stats });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get user statistics
+  app.get("/api/admin/users/stats", isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getUserStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
+    }
+  });
+
+  // Update user
+  app.patch("/api/admin/users/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const updateData = req.body;
+      const user = await storage.updateUser(id, updateData);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Deactivate user
+  app.patch("/api/admin/users/:id/deactivate", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const deactivated = await storage.deactivateUser(id);
+      
+      if (!deactivated) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ message: "User deactivated successfully" });
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      res.status(500).json({ message: "Failed to deactivate user" });
+    }
+  });
+
+  // Email tracking routes
+
+  // Get email logs for a user
+  app.get("/api/admin/users/:id/emails", isAuthenticated, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const emailLogs = await storage.getEmailLogs(userId);
+      res.json(emailLogs);
+    } catch (error) {
+      console.error("Error fetching email logs:", error);
+      res.status(500).json({ message: "Failed to fetch email logs" });
+    }
+  });
+
+  // Get email logs by type
+  app.get("/api/admin/emails/:type", isAuthenticated, async (req, res) => {
+    try {
+      const emailType = req.params.type;
+      const emailLogs = await storage.getEmailLogsByType(emailType);
+      res.json(emailLogs);
+    } catch (error) {
+      console.error("Error fetching email logs by type:", error);
+      res.status(500).json({ message: "Failed to fetch email logs" });
+    }
+  });
+
+  // Email tracking pixel endpoint
+  app.get("/api/email/track-open", async (req, res) => {
+    try {
+      const email = req.query.email as string;
+      if (email) {
+        await storage.trackEmailOpen(email);
+      }
+      
+      // Return a 1x1 transparent pixel
+      const pixel = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        'base64'
+      );
+      
+      res.set({
+        'Content-Type': 'image/png',
+        'Content-Length': pixel.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
+      res.send(pixel);
+    } catch (error) {
+      console.error("Error tracking email open:", error);
+      res.status(200).send(); // Still return success to avoid breaking email clients
     }
   });
 
