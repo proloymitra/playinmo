@@ -854,6 +854,285 @@ export async function initializeDatabase() {
   }
 }
 
+  // Achievement system methods
+  async getAchievements(): Promise<Achievement[]> {
+    return await db.select().from(achievements).orderBy(asc(achievements.name));
+  }
+
+  async getAchievementById(id: number): Promise<Achievement | undefined> {
+    const [achievement] = await db.select().from(achievements).where(eq(achievements.id, id));
+    return achievement;
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const [created] = await db.insert(achievements).values(achievement).returning();
+    return created;
+  }
+
+  async updateAchievement(id: number, data: Partial<Achievement>): Promise<Achievement | undefined> {
+    try {
+      const [updated] = await db
+        .update(achievements)
+        .set(data)
+        .where(eq(achievements.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating achievement:", error);
+      return undefined;
+    }
+  }
+
+  async deleteAchievement(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(achievements).where(eq(achievements.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting achievement:", error);
+      return false;
+    }
+  }
+
+  // User Achievement methods
+  async getUserAchievements(userId: string): Promise<(UserAchievement & { achievement: Achievement })[]> {
+    return await db
+      .select({
+        id: userAchievements.id,
+        userId: userAchievements.userId,
+        achievementId: userAchievements.achievementId,
+        progress: userAchievements.progress,
+        completed: userAchievements.completed,
+        completedAt: userAchievements.completedAt,
+        createdAt: userAchievements.createdAt,
+        achievement: achievements
+      })
+      .from(userAchievements)
+      .innerJoin(achievements, eq(userAchievements.achievementId, achievements.id))
+      .where(eq(userAchievements.userId, userId));
+  }
+
+  async getUserAchievementProgress(userId: string, achievementId: number): Promise<UserAchievement | undefined> {
+    const [progress] = await db
+      .select()
+      .from(userAchievements)
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ));
+    return progress;
+  }
+
+  async updateUserAchievementProgress(userId: string, achievementId: number, progress: any): Promise<UserAchievement> {
+    const existing = await this.getUserAchievementProgress(userId, achievementId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(userAchievements)
+        .set({ progress })
+        .where(and(
+          eq(userAchievements.userId, userId),
+          eq(userAchievements.achievementId, achievementId)
+        ))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(userAchievements)
+        .values({
+          userId,
+          achievementId,
+          progress,
+          completed: false,
+          createdAt: new Date()
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async completeUserAchievement(userId: string, achievementId: number): Promise<UserAchievement> {
+    const [updated] = await db
+      .update(userAchievements)
+      .set({
+        completed: true,
+        completedAt: new Date()
+      })
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async checkAndUpdateAchievements(userId: string, event: any): Promise<UserAchievement[]> {
+    // This would contain logic to check various achievements based on events
+    // For now, return empty array as this is complex business logic
+    return [];
+  }
+
+  // Rewards system methods
+  async getRewards(): Promise<Reward[]> {
+    return await db.select().from(rewards).orderBy(asc(rewards.name));
+  }
+
+  async getRewardById(id: number): Promise<Reward | undefined> {
+    const [reward] = await db.select().from(rewards).where(eq(rewards.id, id));
+    return reward;
+  }
+
+  async createReward(reward: InsertReward): Promise<Reward> {
+    const [created] = await db.insert(rewards).values(reward).returning();
+    return created;
+  }
+
+  async updateReward(id: number, data: Partial<Reward>): Promise<Reward | undefined> {
+    try {
+      const [updated] = await db
+        .update(rewards)
+        .set(data)
+        .where(eq(rewards.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating reward:", error);
+      return undefined;
+    }
+  }
+
+  async deleteReward(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(rewards).where(eq(rewards.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting reward:", error);
+      return false;
+    }
+  }
+
+  // User Rewards methods
+  async getUserRewards(userId: string): Promise<(UserReward & { reward: Reward })[]> {
+    return await db
+      .select({
+        id: userRewards.id,
+        userId: userRewards.userId,
+        rewardId: userRewards.rewardId,
+        purchased: userRewards.purchased,
+        equipped: userRewards.equipped,
+        purchasedAt: userRewards.purchasedAt,
+        equippedAt: userRewards.equippedAt,
+        createdAt: userRewards.createdAt,
+        reward: rewards
+      })
+      .from(userRewards)
+      .innerJoin(rewards, eq(userRewards.rewardId, rewards.id))
+      .where(eq(userRewards.userId, userId));
+  }
+
+  async purchaseReward(userId: string, rewardId: number): Promise<UserReward> {
+    const [created] = await db
+      .insert(userRewards)
+      .values({
+        userId,
+        rewardId,
+        purchased: true,
+        equipped: false,
+        purchasedAt: new Date(),
+        createdAt: new Date()
+      })
+      .returning();
+    return created;
+  }
+
+  async equipReward(userId: string, rewardId: number): Promise<UserReward> {
+    const [updated] = await db
+      .update(userRewards)
+      .set({
+        equipped: true,
+        equippedAt: new Date()
+      })
+      .where(and(
+        eq(userRewards.userId, userId),
+        eq(userRewards.rewardId, rewardId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async unequipReward(userId: string, rewardId: number): Promise<UserReward> {
+    const [updated] = await db
+      .update(userRewards)
+      .set({
+        equipped: false,
+        equippedAt: null
+      })
+      .where(and(
+        eq(userRewards.userId, userId),
+        eq(userRewards.rewardId, rewardId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  // User Points methods
+  async getUserPoints(userId: string): Promise<UserPoints | undefined> {
+    const [points] = await db.select().from(userPoints).where(eq(userPoints.userId, userId));
+    return points;
+  }
+
+  async addUserPoints(userId: string, points: number): Promise<UserPoints> {
+    const existing = await this.getUserPoints(userId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(userPoints)
+        .set({
+          points: existing.points + points,
+          totalEarned: existing.totalEarned + points,
+          updatedAt: new Date()
+        })
+        .where(eq(userPoints.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      return await this.initializeUserPoints(userId);
+    }
+  }
+
+  async spendUserPoints(userId: string, points: number): Promise<UserPoints> {
+    const existing = await this.getUserPoints(userId);
+    
+    if (!existing || existing.points < points) {
+      throw new Error("Insufficient points");
+    }
+
+    const [updated] = await db
+      .update(userPoints)
+      .set({
+        points: existing.points - points,
+        totalSpent: existing.totalSpent + points,
+        updatedAt: new Date()
+      })
+      .where(eq(userPoints.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async initializeUserPoints(userId: string): Promise<UserPoints> {
+    const [created] = await db
+      .insert(userPoints)
+      .values({
+        userId,
+        points: 0,
+        totalEarned: 0,
+        totalSpent: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return created;
+  }
+
   // Email tracking methods
   async logEmail(emailLog: InsertEmailLog): Promise<EmailLog> {
     const [created] = await db
