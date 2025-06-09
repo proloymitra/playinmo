@@ -1779,6 +1779,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get advertisement for specific placement (returns single ad)
+  app.get("/api/advertisements/placement/:placement", async (req, res) => {
+    try {
+      const placement = req.params.placement;
+      const advertisements = await storage.getActiveAdvertisements(placement);
+      
+      if (advertisements.length === 0) {
+        return res.json(null);
+      }
+      
+      // Return a random advertisement from the available ones
+      const randomAd = advertisements[Math.floor(Math.random() * advertisements.length)];
+      res.json(randomAd);
+    } catch (error) {
+      console.error("Error fetching placement advertisement:", error);
+      res.status(500).json({ message: "Failed to fetch advertisement" });
+    }
+  });
+
   // Get advertisement by ID
   app.get("/api/admin/advertisements/:id", isAuthenticated, async (req, res) => {
     try {

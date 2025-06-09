@@ -18,11 +18,17 @@ import { Star, StarHalf, Trophy, Users, BarChart3 } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import GameReviews from "@/components/GameReviews";
+import PreGameAd from "@/components/PreGameAd";
+import PostGameAd from "@/components/PostGameAd";
 
 export default function GameDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const numId = parseInt(id);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showPreGameAd, setShowPreGameAd] = useState(false);
+  const [showPostGameAd, setShowPostGameAd] = useState(false);
+  const [gameResult, setGameResult] = useState<'win' | 'lose' | 'complete' | null>(null);
+  const [gameScore, setGameScore] = useState<number | undefined>(undefined);
   
   const { data: game, isLoading: gameLoading, error: gameError } = useQuery({
     queryKey: [`/api/games/${id}`],

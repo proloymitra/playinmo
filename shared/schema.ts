@@ -352,7 +352,7 @@ export const advertisements = pgTable("advertisements", {
   type: varchar("type", { length: 20 }).notNull(), // 'image', 'audio', 'video'
   mediaUrl: varchar("media_url", { length: 500 }).notNull(),
   clickUrl: varchar("click_url", { length: 500 }),
-  placement: varchar("placement", { length: 50 }).notNull(), // 'banner', 'sidebar', 'popup', 'interstitial'
+  placement: varchar("placement", { length: 50 }).notNull(), // 'banner', 'sidebar', 'popup', 'interstitial', 'pre-game', 'post-game'
   priority: integer("priority").notNull().default(1),
   isActive: boolean("is_active").notNull().default(true),
   startDate: timestamp("start_date"),
