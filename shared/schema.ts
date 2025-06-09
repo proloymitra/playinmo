@@ -69,6 +69,11 @@ export const games = pgTable("games", {
   developer: text("developer").notNull(),
   instructions: text("instructions").notNull(),
   externalUrl: text("external_url"),
+  isHosted: boolean("is_hosted").default(false),
+  gameFolder: text("game_folder"),
+  entryFile: text("entry_file").default("index.html"),
+  gameType: text("game_type").default("external"), // external, html5, construct3
+  fileSize: integer("file_size"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -78,6 +83,11 @@ export const insertGameSchema = createInsertSchema(games, {
   rating: z.number().optional().default(0),
   isFeatured: z.boolean().optional().default(false),
   externalUrl: z.string().optional().nullable(),
+  isHosted: z.boolean().optional().default(false),
+  gameFolder: z.string().optional().nullable(),
+  entryFile: z.string().optional().default("index.html"),
+  gameType: z.enum(["external", "html5", "construct3"]).optional().default("external"),
+  fileSize: z.number().optional().nullable(),
 }).pick({
   title: true, 
   description: true, 
@@ -90,6 +100,11 @@ export const insertGameSchema = createInsertSchema(games, {
   developer: true,
   instructions: true,
   externalUrl: true,
+  isHosted: true,
+  gameFolder: true,
+  entryFile: true,
+  gameType: true,
+  fileSize: true,
 });
 
 export const gameScores = pgTable("game_scores", {
