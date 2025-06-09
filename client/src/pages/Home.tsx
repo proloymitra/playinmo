@@ -4,7 +4,7 @@ import CategorySection from "@/components/CategorySection";
 import GameConsoles from "@/components/GameConsoles";
 import LeaderboardsAndChat from "@/components/LeaderboardsAndChat";
 import CallToAction from "@/components/CallToAction";
-import AdDisplay from "@/components/AdDisplay";
+import AdBanner from "@/components/AdBanner";
 
 export default function Home() {
   return (
@@ -15,14 +15,17 @@ export default function Home() {
       </Helmet>
       <HeroSection />
       <div className="my-8">
-        <AdDisplay placement="banner" className="max-w-6xl mx-auto" />
+        <AdBanner placement="homepage-top" className="max-w-6xl mx-auto" size="large" />
       </div>
       <CategorySection />
       <GameConsoles />
       <div className="my-8">
-        <AdDisplay placement="banner" className="max-w-6xl mx-auto" />
+        <AdBanner placement="homepage-middle" className="max-w-6xl mx-auto" size="medium" />
       </div>
       <LeaderboardsAndChat />
+      <div className="my-6">
+        <AdBanner placement="footer-banner" className="max-w-6xl mx-auto" size="small" />
+      </div>
       <CallToAction />
     </>
   );
