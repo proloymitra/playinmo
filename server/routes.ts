@@ -712,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin - site content
   app.get("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const siteContent = await storage.getSiteContent();
+      const siteContent = await storage.getWebsiteContent();
       res.json(siteContent);
     } catch (error) {
       console.error("Error fetching site content:", error);
@@ -724,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const updateData = req.body;
-      const updatedContent = await storage.updateSiteContent(updateData);
+      const updatedContent = await storage.updateWebsiteContent(updateData.id, updateData);
       res.json(updatedContent);
     } catch (error) {
       console.error("Error updating site content:", error);
@@ -1183,7 +1183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // For backward compatibility - keep old endpoints
   app.get("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const siteContent = await storage.getSiteContent();
+      const siteContent = await storage.getWebsiteContent();
       res.json(siteContent);
     } catch (error) {
       console.error("Error getting site content:", error);
@@ -1195,7 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/site-content", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const updateData = req.body;
-      const updatedContent = await storage.updateSiteContent(updateData);
+      const updatedContent = await storage.updateWebsiteContent(updateData.id, updateData);
       res.json(updatedContent);
     } catch (error) {
       console.error("Error updating site content:", error);

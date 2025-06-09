@@ -576,11 +576,8 @@ export class DatabaseStorage implements IStorage {
         id: userRewards.id,
         userId: userRewards.userId,
         rewardId: userRewards.rewardId,
-        purchased: userRewards.purchased,
-        equipped: userRewards.equipped,
-        purchasedAt: userRewards.purchasedAt,
-        equippedAt: userRewards.equippedAt,
-        createdAt: userRewards.createdAt,
+        unlockedAt: userRewards.unlockedAt,
+        isEquipped: userRewards.isEquipped,
         reward: rewards
       })
       .from(userRewards)
