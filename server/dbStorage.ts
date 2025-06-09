@@ -10,7 +10,8 @@ import {
   userAchievements, type UserAchievement, type InsertUserAchievement,
   rewards, type Reward, type InsertReward,
   userRewards, type UserReward, type InsertUserReward,
-  userPoints, type UserPoints, type InsertUserPoints
+  userPoints, type UserPoints, type InsertUserPoints,
+  emailLogs, type EmailLog, type InsertEmailLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, asc } from "drizzle-orm";

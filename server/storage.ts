@@ -93,6 +93,19 @@ export interface IStorage {
   addUserPoints(userId: string, points: number): Promise<UserPoints>;
   spendUserPoints(userId: string, points: number): Promise<UserPoints>;
   initializeUserPoints(userId: string): Promise<UserPoints>;
+
+  // Email tracking
+  logEmail(emailLog: InsertEmailLog): Promise<EmailLog>;
+  updateEmailStatus(emailId: number, status: string, timestamp?: Date): Promise<EmailLog | undefined>;
+  getEmailLogs(userId: number): Promise<EmailLog[]>;
+  getEmailLogsByType(emailType: string): Promise<EmailLog[]>;
+  trackEmailOpen(email: string): Promise<boolean>;
+
+  // User management for admin
+  getAllUsers(limit?: number, offset?: number): Promise<User[]>;
+  getUserStats(): Promise<{ total: number; active: number; googleUsers: number; manualUsers: number }>;
+  updateUser(id: number, data: Partial<User>): Promise<User | undefined>;
+  deactivateUser(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

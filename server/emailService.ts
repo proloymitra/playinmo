@@ -77,3 +77,93 @@ export async function sendOTPEmail(email: string, otp: string): Promise<boolean>
     return false;
   }
 }
+
+/**
+ * Send welcome email to new users
+ */
+export async function sendWelcomeEmail(email: string, username: string): Promise<boolean> {
+  if (!process.env.SENDGRID_API_KEY) {
+    console.error('SENDGRID_API_KEY not configured');
+    return false;
+  }
+
+  try {
+    const msg = {
+      to: email,
+      from: 'welcome@playinmo.com',
+      subject: 'Welcome to PlayinMO - Your Web Gaming Adventure Begins!',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <div style="padding: 40px 30px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">
+              Welcome to Playin<span style="color: #ffd700;">MO</span>!
+            </h1>
+            <p style="font-size: 18px; margin: 20px 0;">Your web gaming destination for AI-powered games</p>
+          </div>
+          
+          <div style="background: white; color: #333; padding: 40px 30px;">
+            <h2 style="color: #667eea; margin-top: 0;">Hi ${username}!</h2>
+            
+            <p>Thank you for joining PlayinMO! We're excited to have you as part of our gaming community.</p>
+            
+            <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #667eea; margin-top: 0;">What's waiting for you:</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li>🎮 Hundreds of browser games - no downloads needed</li>
+                <li>🏆 Achievement system to track your gaming progress</li>
+                <li>🎁 Rewards shop with exclusive items</li>
+                <li>🏅 Leaderboards to compete with other players</li>
+                <li>💬 Community chat to connect with fellow gamers</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://playinmo.com" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        padding: 15px 30px; 
+                        text-decoration: none; 
+                        border-radius: 25px; 
+                        font-weight: bold;
+                        display: inline-block;">
+                Start Playing Now
+              </a>
+            </div>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <h4 style="color: #856404; margin: 0 0 10px 0;">🎯 Pro Tip:</h4>
+              <p style="margin: 0; color: #856404;">
+                Complete achievements to earn points and unlock exclusive rewards in our shop!
+              </p>
+            </div>
+            
+            <p>If you have any questions or need help getting started, feel free to reach out to our support team.</p>
+            
+            <p>Happy gaming!</p>
+            <p><strong>The PlayinMO Team</strong></p>
+          </div>
+          
+          <div style="background: #2c3e50; padding: 20px 30px; text-align: center; font-size: 12px;">
+            <p style="margin: 0; color: #bdc3c7;">
+              You're receiving this email because you created an account at PlayinMO.
+            </p>
+            <p style="margin: 10px 0 0 0; color: #bdc3c7;">
+              PlayinMO - Your Web Gaming Destination
+            </p>
+            
+            <!-- Email tracking pixel -->
+            <img src="https://playinmo.com/api/email/track-open?email=${encodeURIComponent(email)}" 
+                 width="1" height="1" style="display: none;" alt="">
+          </div>
+        </div>
+      `,
+    };
+
+    await mailService.send(msg);
+    console.log('Welcome email sent successfully to:', email);
+    return true;
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return false;
+  }
+}

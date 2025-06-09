@@ -23,6 +23,10 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false),
   otpSecret: text("otp_secret"),
   otpExpiry: timestamp("otp_expiry"),
+  lastLoginAt: timestamp("last_login_at"),
+  registrationSource: text("registration_source").default("manual"), // 'google', 'manual'
+  emailPreferences: jsonb("email_preferences").default({}),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -295,3 +299,32 @@ export type InsertUserReward = z.infer<typeof insertUserRewardSchema>;
 
 export type UserPoints = typeof userPoints.$inferSelect;
 export type InsertUserPoints = z.infer<typeof insertUserPointsSchema>;
+
+// Email tracking system
+export const emailLogs = pgTable("email_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  emailType: text("email_type").notNull(), // 'welcome', 'newsletter', 'notification'
+  subject: text("subject").notNull(),
+  recipientEmail: text("recipient_email").notNull(),
+  status: text("status").notNull(), // 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'failed'
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  deliveredAt: timestamp("delivered_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").default({}),
+});
+
+export const insertEmailLogSchema = createInsertSchema(emailLogs).pick({
+  userId: true,
+  emailType: true,
+  subject: true,
+  recipientEmail: true,
+  status: true,
+  errorMessage: true,
+  metadata: true,
+});
+
+export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
+export type EmailLog = typeof emailLogs.$inferSelect;
