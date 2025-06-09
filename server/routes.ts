@@ -968,8 +968,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to process login request" });
     }
   });
-  
 
+  // Admin user verification endpoint
+  app.get("/api/admin/user", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (!user || !user.isAdmin) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin
+      });
+    } catch (error) {
+      console.error("Error fetching admin user:", error);
+      res.status(500).json({ message: "Failed to fetch admin user" });
+    }
+  });
   
   // Admin dashboard data
   app.get("/api/admin/dashboard", isAuthenticated, async (req, res) => {

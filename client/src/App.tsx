@@ -83,6 +83,7 @@ function Router() {
   return (
     <div>
       <Switch>
+        <Route path="/cms/login" component={CMSLoginPage} />
         <Route path="/cms" component={CMSLoginPage} />
         <Route path="/cms/dashboard" component={CMSDashboardPage} />
         <Route path="/cms/games" component={CMSGamesPage} />
