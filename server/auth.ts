@@ -119,9 +119,9 @@ export const configurePassport = (app: Express) => {
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
     
-    // Use HTTPS for all Replit domains as they provide SSL
-    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-    const callbackURL = `https://${domain}/api/auth/google/callback`;
+    // Configure for the current Replit domain - both domains are registered in Google Console
+    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+    const callbackURL = `https://${replitDomain || 'localhost:5000'}/api/auth/google/callback`;
     console.log('Google OAuth callback URL:', callbackURL);
     
     passport.use(
