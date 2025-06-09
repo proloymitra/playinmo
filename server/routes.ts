@@ -1203,6 +1203,238 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievements System API Routes
+  
+  // Get all achievements
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error getting achievements:", error);
+      res.status(500).json({ message: "Failed to get achievements" });
+    }
+  });
+
+  // Get user's achievements and progress
+  app.get("/api/user/achievements", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const userAchievements = await storage.getUserAchievements(userId);
+      res.json(userAchievements);
+    } catch (error) {
+      console.error("Error getting user achievements:", error);
+      res.status(500).json({ message: "Failed to get user achievements" });
+    }
+  });
+
+  // Get user's points
+  app.get("/api/user/points", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      let userPoints = await storage.getUserPoints(userId);
+      
+      // Initialize points if they don't exist
+      if (!userPoints) {
+        userPoints = await storage.initializeUserPoints(userId);
+      }
+      
+      res.json(userPoints);
+    } catch (error) {
+      console.error("Error getting user points:", error);
+      res.status(500).json({ message: "Failed to get user points" });
+    }
+  });
+
+  // Get all rewards
+  app.get("/api/rewards", async (req, res) => {
+    try {
+      const rewards = await storage.getRewards();
+      res.json(rewards);
+    } catch (error) {
+      console.error("Error getting rewards:", error);
+      res.status(500).json({ message: "Failed to get rewards" });
+    }
+  });
+
+  // Get user's rewards
+  app.get("/api/user/rewards", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const userRewards = await storage.getUserRewards(userId);
+      res.json(userRewards);
+    } catch (error) {
+      console.error("Error getting user rewards:", error);
+      res.status(500).json({ message: "Failed to get user rewards" });
+    }
+  });
+
+  // Purchase a reward
+  app.post("/api/user/rewards/:rewardId/purchase", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const rewardId = parseInt(req.params.rewardId);
+      
+      if (isNaN(rewardId)) {
+        return res.status(400).json({ message: "Invalid reward ID" });
+      }
+
+      const userReward = await storage.purchaseReward(userId, rewardId);
+      res.json(userReward);
+    } catch (error) {
+      console.error("Error purchasing reward:", error);
+      res.status(400).json({ message: error.message || "Failed to purchase reward" });
+    }
+  });
+
+  // Equip a reward
+  app.patch("/api/user/rewards/:rewardId/equip", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const rewardId = parseInt(req.params.rewardId);
+      
+      if (isNaN(rewardId)) {
+        return res.status(400).json({ message: "Invalid reward ID" });
+      }
+
+      const userReward = await storage.equipReward(userId, rewardId);
+      res.json(userReward);
+    } catch (error) {
+      console.error("Error equipping reward:", error);
+      res.status(500).json({ message: "Failed to equip reward" });
+    }
+  });
+
+  // Unequip a reward
+  app.patch("/api/user/rewards/:rewardId/unequip", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const rewardId = parseInt(req.params.rewardId);
+      
+      if (isNaN(rewardId)) {
+        return res.status(400).json({ message: "Invalid reward ID" });
+      }
+
+      const userReward = await storage.unequipReward(userId, rewardId);
+      res.json(userReward);
+    } catch (error) {
+      console.error("Error unequipping reward:", error);
+      res.status(500).json({ message: "Failed to unequip reward" });
+    }
+  });
+
+  // Admin Routes for Achievements Management
+  
+  // Create achievement (admin only)
+  app.post("/api/admin/achievements", isAuthenticated, async (req, res) => {
+    try {
+      const achievementData = req.body;
+      const achievement = await storage.createAchievement(achievementData);
+      res.status(201).json(achievement);
+    } catch (error) {
+      console.error("Error creating achievement:", error);
+      res.status(500).json({ message: "Failed to create achievement" });
+    }
+  });
+
+  // Update achievement (admin only)
+  app.patch("/api/admin/achievements/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+
+      const updateData = req.body;
+      const achievement = await storage.updateAchievement(id, updateData);
+      
+      if (!achievement) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      res.json(achievement);
+    } catch (error) {
+      console.error("Error updating achievement:", error);
+      res.status(500).json({ message: "Failed to update achievement" });
+    }
+  });
+
+  // Delete achievement (admin only)
+  app.delete("/api/admin/achievements/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid achievement ID" });
+      }
+
+      const deleted = await storage.deleteAchievement(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+      
+      res.json({ message: "Achievement deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting achievement:", error);
+      res.status(500).json({ message: "Failed to delete achievement" });
+    }
+  });
+
+  // Create reward (admin only)
+  app.post("/api/admin/rewards", isAuthenticated, async (req, res) => {
+    try {
+      const rewardData = req.body;
+      const reward = await storage.createReward(rewardData);
+      res.status(201).json(reward);
+    } catch (error) {
+      console.error("Error creating reward:", error);
+      res.status(500).json({ message: "Failed to create reward" });
+    }
+  });
+
+  // Update reward (admin only)
+  app.patch("/api/admin/rewards/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reward ID" });
+      }
+
+      const updateData = req.body;
+      const reward = await storage.updateReward(id, updateData);
+      
+      if (!reward) {
+        return res.status(404).json({ message: "Reward not found" });
+      }
+      
+      res.json(reward);
+    } catch (error) {
+      console.error("Error updating reward:", error);
+      res.status(500).json({ message: "Failed to update reward" });
+    }
+  });
+
+  // Delete reward (admin only)
+  app.delete("/api/admin/rewards/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reward ID" });
+      }
+
+      const deleted = await storage.deleteReward(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Reward not found" });
+      }
+      
+      res.json({ message: "Reward deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting reward:", error);
+      res.status(500).json({ message: "Failed to delete reward" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -23,6 +23,8 @@ import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import CookiePolicyPage from "@/pages/CookiePolicyPage";
 import ResponsibleGamingPage from "@/pages/ResponsibleGamingPage";
 import AdvertiseWithUsPage from "@/pages/AdvertiseWithUsPage";
+import AchievementsPage from "@/pages/AchievementsPage";
+import RewardsPage from "@/pages/RewardsPage";
 
 // CMS Pages
 import CMSLoginPage from "@/pages/admin/CMSLoginPage";
@@ -54,6 +56,8 @@ function Router() {
             <Route path="/game/:id" component={GameDetailsPage} />
             <Route path="/category/:slug" component={CategoryPage} />
             <Route path="/leaderboard" component={LeaderboardPage} />
+            <Route path="/achievements" component={AchievementsPage} />
+            <Route path="/rewards" component={RewardsPage} />
             <Route path="/profile/:id" component={ProfilePage} />
             <Route path="/login" component={LoginPage} />
             <Route path="/about" component={AboutPage} />
