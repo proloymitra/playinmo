@@ -18,6 +18,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import AdBanner from "@/components/AdBanner";
+import AdSidebar from "@/components/AdSidebar";
 import { Trophy, Search, Medal, TrendingUp } from "lucide-react";
 
 export default function LeaderboardPage() {
@@ -41,6 +43,11 @@ export default function LeaderboardPage() {
       </Helmet>
       
       <div className="container mx-auto px-4 py-12">
+        {/* Top banner advertisement */}
+        <div className="mb-8">
+          <AdBanner placement="leaderboard-banner" className="max-w-6xl mx-auto" size="large" />
+        </div>
+        
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2">Leaderboard</h1>
@@ -189,6 +196,9 @@ export default function LeaderboardPage() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Advertisement Sidebar */}
+            <AdSidebar placement="leaderboard-sidebar" title="Tournament Updates" />
             
             {/* Rising Stars */}
             <Card>
