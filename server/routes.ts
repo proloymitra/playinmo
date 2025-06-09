@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { dbStorage } from "./dbStorage";
 import { configureSession, configurePassport, isAuthenticated } from "./auth";
 import { z } from "zod";
 import multer from "multer";
@@ -64,36 +65,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Using fallback directories:', fallbackUploadDir, fallbackGamesDir);
   }
   
-  // Create a route to serve uploaded images
-  app.get('/uploads/:filename', (req: Request, res: Response) => {
+  // Create a route to serve uploaded files with database verification
+  app.get('/uploads/:filename', async (req: Request, res: Response) => {
     const filename = req.params.filename;
-    const filePath = path.join(uploadDir, filename);
     
-    // Add CORS headers for image serving
+    // Add CORS headers for file serving
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error(`Image not found: ${filename}`);
-        return res.status(404).send('Image not found');
+    try {
+      // Check if file exists in database
+      const fileRecord = await dbStorage.getFileByFilename(filename);
+      if (!fileRecord) {
+        console.error(`File not found in database: ${filename}`);
+        return res.status(404).send('File not found');
       }
+
+      const filePath = path.join(uploadDir, filename);
       
-      // Set appropriate content type based on file extension
-      const ext = path.extname(filename).toLowerCase();
-      const mimeTypes = {
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png',
-        '.gif': 'image/gif',
-        '.webp': 'image/webp'
-      };
-      
-      const contentType: string = mimeTypes[ext as keyof typeof mimeTypes] || 'application/octet-stream';
-      res.setHeader('Content-Type', contentType);
-      res.sendFile(filePath);
-    });
+      fs.access(filePath, fs.constants.F_OK, async (err) => {
+        if (err) {
+          console.error(`Physical file not found: ${filename}`);
+          // File exists in database but not on disk - mark as inactive
+          await dbStorage.deactivateFile(filename);
+          return res.status(404).send('File not found');
+        }
+        
+        // Set appropriate content type from database record
+        res.setHeader('Content-Type', fileRecord.mimeType);
+        res.sendFile(filePath);
+      });
+    } catch (error) {
+      console.error('Error serving file:', error);
+      res.status(500).send('Server error');
+    }
   });
   
   // Configure multer for image uploads
@@ -1244,11 +1250,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
       
-      // Get the filename of the uploaded file
+      // Get file information
       const filename = req.file.filename;
+      const originalName = req.file.originalname;
+      const mimeType = req.file.mimetype;
+      const fileSize = req.file.size;
+      const storagePath = path.join(uploadDir, filename);
+      
+      // Store file metadata in database for persistence tracking
+      try {
+        await dbStorage.createFileRecord({
+          filename,
+          originalName,
+          mimeType,
+          fileSize,
+          storagePath,
+          fileType: 'image',
+          uploadedBy: req.user?.id || null
+        });
+        console.log(`File metadata stored in database: ${filename}`);
+      } catch (dbError) {
+        console.error("Error storing file metadata:", dbError);
+        // Continue with upload even if database fails
+      }
       
       // Return the URL for the uploaded image
-      // Use a simpler relative URL which will work with our uploads route
       const imageUrl = `/uploads/${filename}`;
       
       console.log(`Image uploaded successfully: ${imageUrl}`);
