@@ -454,7 +454,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Achievement methods
-  async getUserAchievements(userId: string): Promise<(UserAchievement & { achievement: Achievement })[]> {
+  async getUserAchievements(userId: number): Promise<(UserAchievement & { achievement: Achievement })[]> {
     return await db
       .select({
         id: userAchievements.id,
