@@ -76,10 +76,18 @@ export default function GameDetailsPage() {
   };
 
   const handlePlay = async () => {
-    // Increment play count for all games
+    // Show pre-game advertisement first
+    setShowPreGameAd(true);
+  };
+
+  const handlePreGameAdComplete = async () => {
+    setShowPreGameAd(false);
     setIsPlaying(true);
+    
     try {
-      await apiRequest('POST', `/api/games/${id}/play`, null);
+      await apiRequest(`/api/games/${id}/play`, {
+        method: 'POST'
+      });
       
       // Automatically enter fullscreen mode after a short delay to allow iframe to load
       setTimeout(() => {
@@ -93,6 +101,30 @@ export default function GameDetailsPage() {
     } catch (error) {
       console.error('Error incrementing game plays:', error);
     }
+  };
+
+  const handleGameEnd = (result: 'win' | 'lose' | 'complete', score?: number) => {
+    setGameResult(result);
+    setGameScore(score);
+    setIsPlaying(false);
+    setShowPostGameAd(true);
+  };
+
+  const handlePostGamePlayAgain = () => {
+    setShowPostGameAd(false);
+    setGameResult(null);
+    setGameScore(undefined);
+    // Show pre-game ad again for replay
+    setShowPreGameAd(true);
+  };
+
+  const handlePostGameGoHome = () => {
+    setShowPostGameAd(false);
+    setGameResult(null);
+    setGameScore(undefined);
+    setIsPlaying(false);
+    // Navigate to home page
+    window.location.href = '/';
   };
 
   if (gameLoading) {
@@ -401,6 +433,27 @@ export default function GameDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Pre-Game Advertisement Modal */}
+      {showPreGameAd && (
+        <PreGameAd
+          onAdComplete={handlePreGameAdComplete}
+          onSkip={() => {
+            setShowPreGameAd(false);
+            handlePreGameAdComplete();
+          }}
+        />
+      )}
+
+      {/* Post-Game Advertisement Modal */}
+      {showPostGameAd && (
+        <PostGameAd
+          onPlayAgain={handlePostGamePlayAgain}
+          onGoHome={handlePostGameGoHome}
+          gameScore={gameScore}
+          gameResult={gameResult}
+        />
+      )}
     </>
   );
 }

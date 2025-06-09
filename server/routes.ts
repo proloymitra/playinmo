@@ -1798,6 +1798,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track advertisement view
+  app.post("/api/advertisements/:id/view", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      await storage.incrementAdViews(id);
+      res.json({ message: "View tracked successfully" });
+    } catch (error) {
+      console.error("Error tracking advertisement view:", error);
+      res.status(500).json({ message: "Failed to track view" });
+    }
+  });
+
+  // Track advertisement click
+  app.post("/api/advertisements/:id/click", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      await storage.incrementAdClicks(id);
+      res.json({ message: "Click tracked successfully" });
+    } catch (error) {
+      console.error("Error tracking advertisement click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
   // Get advertisement by ID
   app.get("/api/admin/advertisements/:id", isAuthenticated, async (req, res) => {
     try {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X, Play } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { Advertisement } from "@shared/schema";
 
 interface PreGameAdProps {
   onAdComplete: () => void;
@@ -15,7 +16,7 @@ export default function PreGameAd({ onAdComplete, onSkip }: PreGameAdProps) {
   const [canSkip, setCanSkip] = useState(false);
   const [adViewed, setAdViewed] = useState(false);
 
-  const { data: ad, isLoading } = useQuery({
+  const { data: ad, isLoading } = useQuery<Advertisement | null>({
     queryKey: ['/api/advertisements/placement/pre-game'],
   });
 
