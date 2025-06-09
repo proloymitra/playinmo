@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,107 +20,40 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 
-// Step 1: Request OTP
-const requestOTPSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+// Login form schema
+const loginSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-// Step 2: Verify OTP
-const verifyOTPSchema = z.object({
-  otp: z.string().min(6, 'OTP must be 6 digits').max(6, 'OTP must be 6 digits'),
-});
-
-type RequestOTPFormData = z.infer<typeof requestOTPSchema>;
-type VerifyOTPFormData = z.infer<typeof verifyOTPSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function CMSLoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [otpRequested, setOtpRequested] = useState(false);
-  const [email, setEmail] = useState('');
-  const [otpSecret, setOtpSecret] = useState('');
 
-  // Request OTP form
-  const requestForm = useForm<RequestOTPFormData>({
-    resolver: zodResolver(requestOTPSchema),
+  // Login form
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      username: '',
+      password: '',
     },
   });
 
-  // Verify OTP form
-  const verifyForm = useForm<VerifyOTPFormData>({
-    resolver: zodResolver(verifyOTPSchema),
-    defaultValues: {
-      otp: '',
-    },
-    mode: 'onChange',
-  });
-
-  // Request OTP mutation
-  const requestOTPMutation = useMutation({
-    mutationFn: async (data: RequestOTPFormData) => {
-      const response = await fetch('/api/admin/request-otp', {
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginFormData) => {
+      const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.otpSecret) {
-        setOtpRequested(true);
-        setOtpSecret(data.otpSecret);
-        
-        // For development mode, auto-fill the OTP if provided
-        if (data.otp) {
-          verifyForm.setValue('otp', data.otp);
-          toast({
-            title: 'Development Mode',
-            description: `OTP auto-filled: ${data.otp}. In production, this would be sent via email.`,
-          });
-        } else {
-          toast({
-            title: 'OTP Sent',
-            description: 'Please check your email for the verification code.',
-          });
-        }
-      } else {
-        toast({
-          title: 'OTP Request',
-          description: data.message || 'If your email exists in our system, you will receive an OTP.',
-        });
-      }
-    },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to request OTP. Please try again.',
-      });
-    },
-  });
-
-  // Verify OTP mutation
-  const verifyOTPMutation = useMutation({
-    mutationFn: async (data: VerifyOTPFormData) => {
-      const response = await fetch('/api/admin/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          otp: data.otp,
-          otpSecret,
-        }),
       });
       return response.json();
     },
@@ -136,7 +68,7 @@ export default function CMSLoginPage() {
         toast({
           variant: 'destructive',
           title: 'Login Failed',
-          description: data.message || 'Invalid OTP. Please try again.',
+          description: data.message || 'Invalid credentials. Please try again.',
         });
       }
     },
@@ -144,22 +76,14 @@ export default function CMSLoginPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to verify OTP. Please try again.',
+        description: 'Failed to login. Please try again.',
       });
     },
   });
 
-  // Handle request OTP form submission
-  const onRequestOTP = (data: RequestOTPFormData) => {
-    setEmail(data.email);
-    requestOTPMutation.mutate(data);
-  };
-
-  // Handle verify OTP form submission
-  const onVerifyOTP = (data: VerifyOTPFormData) => {
-    // Clean up OTP if needed (ensure no email addresses are in there)
-    const cleanOTP = data.otp.trim();
-    verifyOTPMutation.mutate({ otp: cleanOTP });
+  // Handle form submission
+  const onSubmit = (data: LoginFormData) => {
+    loginMutation.mutate(data);
   };
 
   return (
@@ -168,96 +92,58 @@ export default function CMSLoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">PlayinMO CMS</CardTitle>
           <CardDescription className="text-center">
-            {otpRequested
-              ? 'Enter the verification code sent to your email'
-              : 'Enter your email to receive a verification code'}
+            Enter your credentials to access the admin panel
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!otpRequested ? (
-            <Form {...requestForm}>
-              <form onSubmit={requestForm.handleSubmit(onRequestOTP)} className="space-y-4">
-                <FormField
-                  control={requestForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="admin@example.com"
-                          type="email"
-                          autoComplete="email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={requestOTPMutation.isPending}
-                >
-                  {requestOTPMutation.isPending ? 'Sending...' : 'Request Verification Code'}
-                </Button>
-              </form>
-            </Form>
-          ) : (
-            <Form {...verifyForm}>
-              <form onSubmit={verifyForm.handleSubmit(onVerifyOTP)} className="space-y-4">
-                <FormField
-                  control={verifyForm.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Verification Code</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="123456"
-                          type="text"
-                          autoComplete="one-time-code"
-                          maxLength={6}
-                          {...field}
-                          onFocus={(e) => {
-                            // Clear the field if it contains the email (a common issue)
-                            if (e.target.value.includes('@')) {
-                              e.target.value = '';
-                              field.onChange('');
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={verifyOTPMutation.isPending}
-                >
-                  {verifyOTPMutation.isPending ? 'Verifying...' : 'Verify'}
-                </Button>
-              </form>
-            </Form>
-          )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter your username"
+                        type="text"
+                        autoComplete="username"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter your password"
+                        type="password"
+                        autoComplete="current-password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          {otpRequested && (
-            <Button
-              variant="link"
-              onClick={() => {
-                setOtpRequested(false);
-                requestForm.reset();
-                verifyForm.reset();
-              }}
-            >
-              Try a different email
-            </Button>
-          )}
-        </CardFooter>
       </Card>
     </div>
   );

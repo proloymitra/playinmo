@@ -20,7 +20,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { generateOTP, generateSecret, getOTPExpiry, sendOTPEmail, sendWelcomeEmail } from "./emailService";
+import { sendWelcomeEmail } from "./emailService";
 
 // Extend Express Request type to include user property
 declare global {
@@ -920,149 +920,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Request OTP login
-  app.post("/api/admin/request-otp", async (req, res) => {
+  // Admin login with username and password
+  app.post("/api/admin/login", async (req, res) => {
     try {
-      const { email } = req.body;
+      const { username, password } = req.body;
       
-      if (!email) {
-        return res.status(400).json({ message: "Email is required" });
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
       }
       
-      // For development/testing purposes, allow direct admin login from the admin email
-      // This provides a fallback in case of email delivery issues
-      if (email === "proloymitra@gmail.com") {
-        // Generate a static OTP for development
-        const otp = "635795"; // This matches the OTP we see in the email screenshot
-        const otpSecret = generateSecret();
-        const otpExpiry = getOTPExpiry();
-        
-        try {
-          // Find user by email
-          const user = await storage.getUserByEmail(email);
-          if (user) {
-            // Update user with OTP details
-            await storage.updateUserOTP(user.id, otpSecret, otpExpiry);
-          }
-        } catch (dbError) {
-          console.error("Database error when finding/updating user:", dbError);
-          // Continue anyway to provide the OTP
-        }
-        
-        // Try to send email, but don't fail if it doesn't work
-        try {
-          await sendOTPEmail(email, otp);
-        } catch (emailError) {
-          console.error("Error sending email:", emailError);
-          // Continue anyway since we're showing the OTP for development
-        }
-        
-        return res.json({ 
-          message: "OTP has been sent to your email. For development, use: 635795",
-          otpSecret,
-          otp: "635795" // Sending OTP directly in development mode
-        });
-      }
+      // Admin credentials (you can modify these as needed)
+      const adminUsername = "proloymitra@gmail.com";
+      const adminPassword = "2025@playinMO#";
       
-      // Normal flow for production
-      try {
-        // Find user by email
-        const user = await storage.getUserByEmail(email);
-        if (!user || !user.isAdmin) {
-          // Don't reveal whether user exists or not for security
-          return res.status(200).json({ message: "If your email exists in our system, you will receive an OTP" });
-        }
-        
-        // Generate OTP
-        const otp = generateOTP();
-        const otpSecret = generateSecret();
-        const otpExpiry = getOTPExpiry();
-        
-        // Update user with OTP details
-        await storage.updateUserOTP(user.id, otpSecret, otpExpiry);
-        
-        // Send OTP email
-        const emailSent = await sendOTPEmail(email, otp);
-        
-        if (!emailSent) {
-          return res.status(500).json({ message: "Failed to send OTP email" });
-        }
-        
-        res.json({ 
-          message: "OTP has been sent to your email",
-          otpSecret
-        });
-      } catch (dbError) {
-        console.error("Database error in OTP flow:", dbError);
-        res.status(500).json({ message: "Database error, please try again" });
-      }
-    } catch (error) {
-      console.error("Error requesting OTP:", error);
-      res.status(500).json({ message: "Failed to process OTP request" });
-    }
-  });
-  
-  // Verify OTP and login
-  app.post("/api/admin/verify-otp", async (req, res) => {
-    try {
-      const { email, otp, otpSecret } = req.body;
-      
-      if (!email || !otp || !otpSecret) {
-        return res.status(400).json({ message: "Email, OTP and OTP secret are required" });
-      }
-      
-      // For development/testing with the admin email
-      if (email === "proloymitra@gmail.com" && otp === "635795") {
-        try {
-          // Try to find the user, but continue even if database fails
-          let user = null;
-          try {
-            user = await storage.getUserByEmail(email);
-          } catch (dbError) {
-            console.error("Database error finding user:", dbError);
-          }
-          
-          // If no user was found or there was a database error, create a fake user object
-          if (!user) {
-            user = {
-              id: 999, // A fake ID for development
-              username: "admin",
-              email: "proloymitra@gmail.com",
-              isAdmin: true,
-              createdAt: new Date()
-            };
-          }
-          
-          // Log in the user
-          req.login(user, (err) => {
-            if (err) {
-              console.error("Login error:", err);
-              return res.status(500).json({ message: "Failed to login" });
-            }
-            
-            return res.json({ 
-              user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                isAdmin: true
-              }
-            });
-          });
-          return;
-        } catch (devError) {
-          console.error("Error in development login:", devError);
-          // Continue to normal flow if development shortcut fails
-        }
-      }
-      
-      // Normal verification flow
-      try {
-        // Verify OTP
-        const user = await storage.verifyOTP(email, otpSecret);
-        if (!user) {
-          return res.status(401).json({ message: "Invalid or expired OTP" });
-        }
+      // Verify credentials
+      if (username === adminUsername && password === adminPassword) {
+        // Create admin user object
+        const user = {
+          id: 999,
+          username: adminUsername,
+          email: adminUsername,
+          isAdmin: true,
+          createdAt: new Date()
+        };
         
         // Log in the user
         req.login(user, (err) => {
@@ -1071,19 +951,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ message: "Failed to login" });
           }
           
-          // Don't return sensitive information
-          const { password, otpSecret: secret, otpExpiry, ...safeUser } = user;
-          return res.json({ user: safeUser });
+          return res.json({ 
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              isAdmin: true
+            }
+          });
         });
-      } catch (dbError) {
-        console.error("Database error verifying OTP:", dbError);
-        res.status(500).json({ message: "Database error, please try again" });
+      } else {
+        return res.status(401).json({ message: "Invalid credentials" });
       }
     } catch (error) {
-      console.error("Error verifying OTP:", error);
-      res.status(500).json({ message: "Failed to verify OTP" });
+      console.error("Error during admin login:", error);
+      res.status(500).json({ message: "Failed to process login request" });
     }
   });
+  
+
   
   // Admin dashboard data
   app.get("/api/admin/dashboard", isAuthenticated, async (req, res) => {
