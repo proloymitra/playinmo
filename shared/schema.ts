@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, unique, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -328,3 +328,74 @@ export const insertEmailLogSchema = createInsertSchema(emailLogs).pick({
 
 export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
 export type EmailLog = typeof emailLogs.$inferSelect;
+
+// Advertisement System
+export const advertisements = pgTable("advertisements", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 20 }).notNull(), // 'image', 'audio', 'video'
+  mediaUrl: varchar("media_url", { length: 500 }).notNull(),
+  clickUrl: varchar("click_url", { length: 500 }),
+  placement: varchar("placement", { length: 50 }).notNull(), // 'banner', 'sidebar', 'popup', 'interstitial'
+  priority: integer("priority").notNull().default(1),
+  isActive: boolean("is_active").notNull().default(true),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  targetAudience: jsonb("target_audience"), // Demographics, interests, etc.
+  clickCount: integer("click_count").notNull().default(0),
+  viewCount: integer("view_count").notNull().default(0),
+  budget: decimal("budget", { precision: 10, scale: 2 }),
+  costPerClick: decimal("cost_per_click", { precision: 10, scale: 2 }),
+  costPerView: decimal("cost_per_view", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdvertisementSchema = createInsertSchema(advertisements).pick({
+  title: true,
+  description: true,
+  type: true,
+  mediaUrl: true,
+  clickUrl: true,
+  placement: true,
+  priority: true,
+  isActive: true,
+  startDate: true,
+  endDate: true,
+  targetAudience: true,
+  budget: true,
+  costPerClick: true,
+  costPerView: true
+});
+
+export type Advertisement = typeof advertisements.$inferSelect;
+export type InsertAdvertisement = z.infer<typeof insertAdvertisementSchema>;
+
+// Ad Analytics
+export const adAnalytics = pgTable("ad_analytics", {
+  id: serial("id").primaryKey(),
+  advertisementId: integer("advertisement_id").notNull().references(() => advertisements.id),
+  eventType: varchar("event_type", { length: 20 }).notNull(), // 'view', 'click', 'close'
+  userId: integer("user_id").references(() => users.id),
+  sessionId: varchar("session_id", { length: 255 }),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  referrer: varchar("referrer", { length: 500 }),
+  timestamp: timestamp("timestamp").defaultNow(),
+  metadata: jsonb("metadata") // Additional tracking data
+});
+
+export const insertAdAnalyticsSchema = createInsertSchema(adAnalytics).pick({
+  advertisementId: true,
+  eventType: true,
+  userId: true,
+  sessionId: true,
+  userAgent: true,
+  ipAddress: true,
+  referrer: true,
+  metadata: true
+});
+
+export type AdAnalytics = typeof adAnalytics.$inferSelect;
+export type InsertAdAnalytics = z.infer<typeof insertAdAnalyticsSchema>;

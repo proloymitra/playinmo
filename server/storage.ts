@@ -112,6 +112,22 @@ export interface IStorage {
   getUserStats(): Promise<{ total: number; active: number; googleUsers: number; manualUsers: number }>;
   updateUser(id: number, data: Partial<User>): Promise<User | undefined>;
   deactivateUser(id: number): Promise<boolean>;
+
+  // Advertisement System
+  getAdvertisements(): Promise<Advertisement[]>;
+  getActiveAdvertisements(placement?: string): Promise<Advertisement[]>;
+  getAdvertisementById(id: number): Promise<Advertisement | undefined>;
+  createAdvertisement(ad: InsertAdvertisement): Promise<Advertisement>;
+  updateAdvertisement(id: number, data: Partial<Advertisement>): Promise<Advertisement | undefined>;
+  deleteAdvertisement(id: number): Promise<boolean>;
+  incrementAdViews(id: number): Promise<void>;
+  incrementAdClicks(id: number): Promise<void>;
+  
+  // Ad Analytics
+  logAdEvent(analytics: InsertAdAnalytics): Promise<AdAnalytics>;
+  getAdAnalytics(advertisementId: number, limit?: number): Promise<AdAnalytics[]>;
+  getAdPerformance(advertisementId: number): Promise<{ views: number; clicks: number; ctr: number }>;
+  getAdvertisementStats(): Promise<{ total: number; active: number; totalViews: number; totalClicks: number }>;
 }
 
 export class MemStorage implements IStorage {
