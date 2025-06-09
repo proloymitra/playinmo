@@ -44,15 +44,47 @@ export const configurePassport = (app: Express) => {
   // Serialize and deserialize user
   passport.serializeUser((user: any, done) => {
     console.log('Serializing user:', user);
-    done(null, user.id);
+    // For admin users with special ID 999, serialize the entire user object
+    if (user.id === 999) {
+      done(null, { type: 'admin', user });
+    } else {
+      done(null, { type: 'regular', id: user.id });
+    }
   });
 
-  passport.deserializeUser(async (id: number, done) => {
+  passport.deserializeUser(async (data: any, done) => {
     try {
-      console.log('Deserializing user with ID:', id);
-      const user = await storage.getUser(id);
-      console.log('Deserialized user:', user);
-      done(null, user);
+      console.log('Deserializing user with data:', data);
+      
+      // Handle old format where only ID was stored
+      if (typeof data === 'number') {
+        if (data === 999) {
+          // Special admin user
+          const adminUser = {
+            id: 999,
+            username: 'proloymitra@gmail.com',
+            email: 'proloymitra@gmail.com',
+            isAdmin: true,
+            createdAt: new Date()
+          };
+          console.log('Deserialized admin user (legacy):', adminUser);
+          done(null, adminUser);
+        } else {
+          // Regular user - fetch from database
+          const user = await storage.getUser(data);
+          console.log('Deserialized regular user:', user);
+          done(null, user);
+        }
+      } else if (data.type === 'admin') {
+        // Return the admin user directly
+        console.log('Deserialized admin user:', data.user);
+        done(null, data.user);
+      } else {
+        // Regular user - fetch from database
+        const user = await storage.getUser(data.id);
+        console.log('Deserialized regular user:', user);
+        done(null, user);
+      }
     } catch (error) {
       console.error('Error deserializing user:', error);
       done(error, null);
