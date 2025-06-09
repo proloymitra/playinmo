@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -176,3 +176,122 @@ export const insertWebsiteContentSchema = createInsertSchema(websiteContent).pic
 
 export type WebsiteContent = typeof websiteContent.$inferSelect;
 export type InsertWebsiteContent = z.infer<typeof insertWebsiteContentSchema>;
+
+// Achievements system tables
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  iconUrl: varchar("icon_url", { length: 500 }),
+  category: varchar("category", { length: 100 }).notNull(), // gaming, social, progression, special
+  type: varchar("type", { length: 50 }).notNull(), // score_based, games_played, streak, social, milestone
+  condition: jsonb("condition").notNull(), // Achievement criteria (e.g., {score: 1000, game_id: 1})
+  points: integer("points").notNull().default(10), // Reward points for completing
+  rarity: varchar("rarity", { length: 20 }).notNull().default("common"), // common, rare, epic, legendary
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAchievementSchema = createInsertSchema(achievements).pick({
+  name: true,
+  description: true,
+  iconUrl: true,
+  category: true,
+  type: true,
+  condition: true,
+  points: true,
+  rarity: true,
+  isActive: true
+});
+
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  achievementId: integer("achievement_id").notNull().references(() => achievements.id),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  progress: jsonb("progress"), // Current progress towards achievement (e.g., {current: 500, required: 1000})
+  isCompleted: boolean("is_completed").notNull().default(false),
+}, (table) => [
+  unique().on(table.userId, table.achievementId),
+]);
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).pick({
+  userId: true,
+  achievementId: true,
+  progress: true,
+  isCompleted: true
+});
+
+export const rewards = pgTable("rewards", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // badge, title, avatar_frame, special_feature
+  value: jsonb("value").notNull(), // Reward data (e.g., {title: "Game Master", color: "#gold"})
+  cost: integer("cost").notNull(), // Points required to unlock
+  category: varchar("category", { length: 100 }).notNull(),
+  rarity: varchar("rarity", { length: 20 }).notNull().default("common"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRewardSchema = createInsertSchema(rewards).pick({
+  name: true,
+  description: true,
+  type: true,
+  value: true,
+  cost: true,
+  category: true,
+  rarity: true,
+  isActive: true
+});
+
+export const userRewards = pgTable("user_rewards", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  rewardId: integer("reward_id").notNull().references(() => rewards.id),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  isEquipped: boolean("is_equipped").notNull().default(false), // For titles, badges, etc.
+}, (table) => [
+  unique().on(table.userId, table.rewardId),
+]);
+
+export const insertUserRewardSchema = createInsertSchema(userRewards).pick({
+  userId: true,
+  rewardId: true,
+  isEquipped: true
+});
+
+// Add points field to users table for the rewards system
+export const userPoints = pgTable("user_points", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  totalPoints: integer("total_points").notNull().default(0),
+  availablePoints: integer("available_points").notNull().default(0), // Points that can be spent
+  lifetimePoints: integer("lifetime_points").notNull().default(0), // Total points ever earned
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserPointsSchema = createInsertSchema(userPoints).pick({
+  userId: true,
+  totalPoints: true,
+  availablePoints: true,
+  lifetimePoints: true
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+
+export type Reward = typeof rewards.$inferSelect;
+export type InsertReward = z.infer<typeof insertRewardSchema>;
+
+export type UserReward = typeof userRewards.$inferSelect;
+export type InsertUserReward = z.infer<typeof insertUserRewardSchema>;
+
+export type UserPoints = typeof userPoints.$inferSelect;
+export type InsertUserPoints = z.infer<typeof insertUserPointsSchema>;

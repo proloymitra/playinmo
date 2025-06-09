@@ -5,7 +5,12 @@ import {
   gameScores, type GameScore, type InsertGameScore,
   chatMessages, type ChatMessage, type InsertChatMessage,
   gameReviews, type GameReview, type InsertGameReview,
-  websiteContent, type WebsiteContent, type InsertWebsiteContent
+  websiteContent, type WebsiteContent, type InsertWebsiteContent,
+  achievements, type Achievement, type InsertAchievement,
+  userAchievements, type UserAchievement, type InsertUserAchievement,
+  rewards, type Reward, type InsertReward,
+  userRewards, type UserReward, type InsertUserReward,
+  userPoints, type UserPoints, type InsertUserPoints
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, asc } from "drizzle-orm";

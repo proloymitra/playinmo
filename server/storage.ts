@@ -60,6 +60,39 @@ export interface IStorage {
   updateWebsiteContent(id: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined>;
   createWebsiteContent(content: InsertWebsiteContent): Promise<WebsiteContent>;
   deleteWebsiteContent(id: number): Promise<boolean>;
+
+  // Achievements System
+  getAchievements(): Promise<Achievement[]>;
+  getAchievementById(id: number): Promise<Achievement | undefined>;
+  createAchievement(achievement: InsertAchievement): Promise<Achievement>;
+  updateAchievement(id: number, data: Partial<Achievement>): Promise<Achievement | undefined>;
+  deleteAchievement(id: number): Promise<boolean>;
+
+  // User Achievements
+  getUserAchievements(userId: string): Promise<(UserAchievement & { achievement: Achievement })[]>;
+  getUserAchievementProgress(userId: string, achievementId: number): Promise<UserAchievement | undefined>;
+  updateUserAchievementProgress(userId: string, achievementId: number, progress: any): Promise<UserAchievement>;
+  completeUserAchievement(userId: string, achievementId: number): Promise<UserAchievement>;
+  checkAndUpdateAchievements(userId: string, event: any): Promise<UserAchievement[]>;
+
+  // Rewards System
+  getRewards(): Promise<Reward[]>;
+  getRewardById(id: number): Promise<Reward | undefined>;
+  createReward(reward: InsertReward): Promise<Reward>;
+  updateReward(id: number, data: Partial<Reward>): Promise<Reward | undefined>;
+  deleteReward(id: number): Promise<boolean>;
+
+  // User Rewards
+  getUserRewards(userId: string): Promise<(UserReward & { reward: Reward })[]>;
+  purchaseReward(userId: string, rewardId: number): Promise<UserReward>;
+  equipReward(userId: string, rewardId: number): Promise<UserReward>;
+  unequipReward(userId: string, rewardId: number): Promise<UserReward>;
+
+  // User Points
+  getUserPoints(userId: string): Promise<UserPoints | undefined>;
+  addUserPoints(userId: string, points: number): Promise<UserPoints>;
+  spendUserPoints(userId: string, points: number): Promise<UserPoints>;
+  initializeUserPoints(userId: string): Promise<UserPoints>;
 }
 
 export class MemStorage implements IStorage {
