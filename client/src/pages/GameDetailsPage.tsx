@@ -134,7 +134,11 @@ export default function GameDetailsPage() {
                             window.setTimeout(() => el.focus(), 1000);
                           }
                         }}
-                        src={game.externalUrl ? game.externalUrl : `/game-frame/${id}`} 
+                        src={
+                          game.isHosted && game.gameFolder 
+                            ? `/games/${game.gameFolder}/${game.entryFile || 'index.html'}`
+                            : game.externalUrl || `/game-frame/${id}`
+                        } 
                         className="w-full h-full border-0 absolute inset-0"
                         title={`Play ${game.title}`}
                         sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-orientation-lock allow-pointer-lock"

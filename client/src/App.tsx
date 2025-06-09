@@ -33,6 +33,7 @@ import CMSGamesPage from "@/pages/admin/CMSGamesPage";
 import CMSCategoriesPage from "@/pages/admin/CMSCategoriesPage";
 import CMSWebsiteContentPage from "@/pages/admin/CMSWebsiteContentPage";
 import AdvertisementManagementPage from "@/pages/admin/AdvertisementManagementPage";
+import GameUploadPage from "@/pages/admin/GameUploadPage";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -85,6 +86,7 @@ function Router() {
         <Route path="/cms" component={CMSLoginPage} />
         <Route path="/cms/dashboard" component={CMSDashboardPage} />
         <Route path="/cms/games" component={CMSGamesPage} />
+        <Route path="/cms/upload-game" component={GameUploadPage} />
         <Route path="/cms/categories" component={CMSCategoriesPage} />
         <Route path="/cms/website-content" component={CMSWebsiteContentPage} />
         <Route path="/cms/advertisements" component={AdvertisementManagementPage} />

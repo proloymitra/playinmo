@@ -158,6 +158,12 @@ export default function CMSDashboardPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             <Button variant="outline" className="justify-start" asChild>
+              <a href="/cms/upload-game">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Upload Game
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
               <a href="/cms/games">
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Manage Games
