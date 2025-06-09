@@ -570,7 +570,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Rewards methods
-  async getUserRewards(userId: string): Promise<(UserReward & { reward: Reward })[]> {
+  async getUserRewards(userId: number): Promise<(UserReward & { reward: Reward })[]> {
     return await db
       .select({
         id: userRewards.id,
@@ -628,12 +628,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Points methods
-  async getUserPoints(userId: string): Promise<UserPoints | undefined> {
+  async getUserPoints(userId: number): Promise<UserPoints | undefined> {
     const [points] = await db.select().from(userPoints).where(eq(userPoints.userId, userId));
     return points;
   }
 
-  async addUserPoints(userId: string, pointsToAdd: number): Promise<UserPoints> {
+  async addUserPoints(userId: number, pointsToAdd: number): Promise<UserPoints> {
     const existing = await this.getUserPoints(userId);
     
     if (existing) {
@@ -653,7 +653,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async spendUserPoints(userId: string, pointsToSpend: number): Promise<UserPoints> {
+  async spendUserPoints(userId: number, pointsToSpend: number): Promise<UserPoints> {
     const existing = await this.getUserPoints(userId);
     
     if (!existing || existing.availablePoints < pointsToSpend) {
@@ -671,7 +671,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async initializeUserPoints(userId: string): Promise<UserPoints> {
+  async initializeUserPoints(userId: number): Promise<UserPoints> {
     const [created] = await db
       .insert(userPoints)
       .values({
