@@ -344,6 +344,33 @@ export const insertEmailLogSchema = createInsertSchema(emailLogs).pick({
 export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
 export type EmailLog = typeof emailLogs.$inferSelect;
 
+// File storage tracking system
+export const fileStorage = pgTable("file_storage", {
+  id: serial("id").primaryKey(),
+  filename: varchar("filename", { length: 255 }).notNull().unique(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  storagePath: text("storage_path").notNull(),
+  fileType: varchar("file_type", { length: 50 }).notNull(), // 'image', 'game', 'document'
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertFileStorageSchema = createInsertSchema(fileStorage).pick({
+  filename: true,
+  originalName: true,
+  mimeType: true,
+  fileSize: true,
+  storagePath: true,
+  fileType: true,
+  uploadedBy: true,
+});
+
+export type FileStorage = typeof fileStorage.$inferSelect;
+export type InsertFileStorage = z.infer<typeof insertFileStorageSchema>;
+
 // Advertisement System
 export const advertisements = pgTable("advertisements", {
   id: serial("id").primaryKey(),

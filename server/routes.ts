@@ -37,14 +37,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
   configurePassport(app);
   
-  // Create uploads directory if it doesn't exist
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  const gamesDir = path.join(process.cwd(), 'public', 'games');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-  if (!fs.existsSync(gamesDir)) {
-    fs.mkdirSync(gamesDir, { recursive: true });
+  // Use persistent storage directories - store in home directory to survive deployments
+  const persistentDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage');
+  const uploadDir = path.join(persistentDir, 'uploads');
+  const gamesDir = path.join(persistentDir, 'games');
+  
+  // Create persistent directories if they don't exist
+  try {
+    if (!fs.existsSync(persistentDir)) {
+      fs.mkdirSync(persistentDir, { recursive: true });
+      console.log('Created persistent storage directory:', persistentDir);
+    }
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+      console.log('Created uploads directory:', uploadDir);
+    }
+    if (!fs.existsSync(gamesDir)) {
+      fs.mkdirSync(gamesDir, { recursive: true });
+      console.log('Created games directory:', gamesDir);
+    }
+  } catch (error) {
+    console.error('Error creating persistent directories:', error);
+    // Fallback to project directory if persistent storage fails
+    const fallbackUploadDir = path.join(process.cwd(), 'uploads');
+    const fallbackGamesDir = path.join(process.cwd(), 'games');
+    console.log('Using fallback directories:', fallbackUploadDir, fallbackGamesDir);
   }
   
   // Create a route to serve uploaded images

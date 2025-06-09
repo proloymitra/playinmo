@@ -13,7 +13,8 @@ import {
   userPoints, type UserPoints, type InsertUserPoints,
   emailLogs, type EmailLog, type InsertEmailLog,
   advertisements, type Advertisement, type InsertAdvertisement,
-  adAnalytics, type AdAnalytics, type InsertAdAnalytics
+  adAnalytics, type AdAnalytics, type InsertAdAnalytics,
+  fileStorage, type FileStorage, type InsertFileStorage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, asc } from "drizzle-orm";
@@ -794,6 +795,64 @@ export class DatabaseStorage implements IStorage {
       active: activeResult[0]?.count || 0,
       googleUsers: googleResult[0]?.count || 0,
       manualUsers: manualResult[0]?.count || 0
+    };
+  }
+
+  // File storage methods for persistent file tracking
+  async createFileRecord(fileData: InsertFileStorage): Promise<FileStorage> {
+    const [file] = await db.insert(fileStorage).values(fileData).returning();
+    return file;
+  }
+
+  async getFileByFilename(filename: string): Promise<FileStorage | undefined> {
+    const [file] = await db
+      .select()
+      .from(fileStorage)
+      .where(and(eq(fileStorage.filename, filename), eq(fileStorage.isActive, true)));
+    return file;
+  }
+
+  async getFilesByType(fileType: string): Promise<FileStorage[]> {
+    return await db
+      .select()
+      .from(fileStorage)
+      .where(and(eq(fileStorage.fileType, fileType), eq(fileStorage.isActive, true)))
+      .orderBy(desc(fileStorage.createdAt));
+  }
+
+  async deactivateFile(filename: string): Promise<boolean> {
+    const result = await db
+      .update(fileStorage)
+      .set({ isActive: false })
+      .where(eq(fileStorage.filename, filename));
+    
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getFileStats(): Promise<{ total: number; images: number; games: number; totalSize: number }> {
+    const totalResult = await db
+      .select({ 
+        count: sql<number>`count(*)`,
+        size: sql<number>`sum(file_size)`
+      })
+      .from(fileStorage)
+      .where(eq(fileStorage.isActive, true));
+    
+    const imagesResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(fileStorage)
+      .where(and(eq(fileStorage.fileType, 'image'), eq(fileStorage.isActive, true)));
+    
+    const gamesResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(fileStorage)
+      .where(and(eq(fileStorage.fileType, 'game'), eq(fileStorage.isActive, true)));
+
+    return {
+      total: totalResult[0]?.count || 0,
+      images: imagesResult[0]?.count || 0,
+      games: gamesResult[0]?.count || 0,
+      totalSize: totalResult[0]?.size || 0
     };
   }
 
