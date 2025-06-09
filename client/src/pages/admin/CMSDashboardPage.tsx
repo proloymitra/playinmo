@@ -169,6 +169,12 @@ export default function CMSDashboardPage() {
                 Manage Categories
               </a>
             </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/cms/advertisements">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Manage Advertisements
+              </a>
+            </Button>
           </CardContent>
           <CardFooter>
             <p className="text-xs text-muted-foreground">

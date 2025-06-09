@@ -87,6 +87,7 @@ function Router() {
         <Route path="/cms/games" component={CMSGamesPage} />
         <Route path="/cms/categories" component={CMSCategoriesPage} />
         <Route path="/cms/website-content" component={CMSWebsiteContentPage} />
+        <Route path="/cms/advertisements" component={AdvertisementManagementPage} />
         <Route component={NotFound} />
       </Switch>
     </div>
