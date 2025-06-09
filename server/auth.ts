@@ -184,21 +184,104 @@ export const configurePassport = (app: Express) => {
       )
     );
 
-    // Set up Google authentication routes  
+    // Strategy for Replit domain
+    passport.use('google-replit',
+      new GoogleStrategy(
+        {
+          clientID: googleClientId,
+          clientSecret: googleClientSecret,
+          callbackURL: `https://${replitDomain}/api/auth/google/callback`,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            console.log('Google OAuth profile received:', {
+              id: profile.id,
+              displayName: profile.displayName,
+              emails: profile.emails,
+              photos: profile.photos
+            });
+
+            let user = await storage.getUserByGoogleId(profile.id);
+            console.log('Existing user found:', user ? 'Yes' : 'No');
+
+            if (!user) {
+              const email = profile.emails && profile.emails[0] ? profile.emails[0].value : '';
+              const baseUsername = profile.displayName || email.split('@')[0];
+              const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
+
+              let username = baseUsername;
+              let counter = 1;
+              while (await storage.getUserByUsername(username)) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+              }
+
+              console.log('Creating new user with data:', {
+                username,
+                email,
+                googleId: profile.id,
+                avatarUrl: photoUrl,
+              });
+
+              user = await storage.createUser({
+                username,
+                email,
+                googleId: profile.id,
+                avatarUrl: photoUrl,
+              });
+              
+              console.log('New user created:', user);
+            }
+
+            console.log('Returning user to passport:', user);
+            return done(null, user);
+          } catch (error) {
+            console.error('Google OAuth error:', error);
+            return done(error as Error, undefined);
+          }
+        }
+      )
+    );
+
+    // Set up Google authentication routes with domain detection
     app.get('/api/auth/google', (req, res, next) => {
-      console.log('Google OAuth initiated from:', req.get('host'));
-      passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+      const hostname = req.get('host');
+      console.log('Google OAuth initiated from:', hostname);
+      
+      // Choose strategy based on hostname
+      const strategy = hostname === 'playinmo.com' ? 'google-custom' : 'google-replit';
+      console.log('Using OAuth strategy:', strategy);
+      
+      passport.authenticate(strategy, { scope: ['profile', 'email'] })(req, res, next);
     });
 
-    app.get('/api/auth/google/callback', 
-      passport.authenticate('google', { failureRedirect: '/login?error=oauth_failed' }),
-      (req, res) => {
-        console.log('Google OAuth callback successful, user:', req.user);
-        console.log('Session ID:', req.sessionID);
-        console.log('Is authenticated:', req.isAuthenticated());
-        res.redirect('/');
-      }
-    );
+    app.get('/api/auth/google/callback', (req, res, next) => {
+      const hostname = req.get('host');
+      const strategy = hostname === 'playinmo.com' ? 'google-custom' : 'google-replit';
+      
+      passport.authenticate(strategy, { failureRedirect: '/login?error=oauth_failed' }, (err: any, user: any) => {
+        if (err) {
+          console.error('Google OAuth callback error:', err);
+          return res.redirect('/login?error=oauth_failed');
+        }
+        if (!user) {
+          console.log('Google OAuth callback: No user returned');
+          return res.redirect('/login?error=oauth_failed');
+        }
+        
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error('Login error:', loginErr);
+            return res.redirect('/login?error=login_failed');
+          }
+          
+          console.log('Google OAuth callback successful, user:', req.user);
+          console.log('Session ID:', req.sessionID);
+          console.log('Is authenticated:', req.isAuthenticated());
+          res.redirect('/');
+        });
+      })(req, res, next);
+    });
   } else {
     console.log('Google authentication not configured - skipping strategy setup');
   }

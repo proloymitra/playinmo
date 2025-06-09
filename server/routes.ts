@@ -76,13 +76,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add CORS headers for cross-domain access
   app.use((req, res, next) => {
     const origin = req.headers.origin;
+    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
     const allowedOrigins = [
       'https://playinmo.com',
-      `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`,
+      replitDomain ? `https://${replitDomain}` : null,
       'http://localhost:5000'
-    ];
+    ].filter(Boolean) as string[];
     
-    if (allowedOrigins.includes(origin)) {
+    if (origin && allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
     }
     res.setHeader('Access-Control-Allow-Credentials', 'true');
