@@ -211,7 +211,7 @@ export const insertAchievementSchema = createInsertSchema(achievements).pick({
 
 export const userAchievements = pgTable("user_achievements", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id),
   achievementId: integer("achievement_id").notNull().references(() => achievements.id),
   unlockedAt: timestamp("unlocked_at").defaultNow(),
   progress: jsonb("progress"), // Current progress towards achievement (e.g., {current: 500, required: 1000})
@@ -254,7 +254,7 @@ export const insertRewardSchema = createInsertSchema(rewards).pick({
 
 export const userRewards = pgTable("user_rewards", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id),
   rewardId: integer("reward_id").notNull().references(() => rewards.id),
   unlockedAt: timestamp("unlocked_at").defaultNow(),
   isEquipped: boolean("is_equipped").notNull().default(false), // For titles, badges, etc.
@@ -271,7 +271,7 @@ export const insertUserRewardSchema = createInsertSchema(userRewards).pick({
 // Add points field to users table for the rewards system
 export const userPoints = pgTable("user_points", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
   totalPoints: integer("total_points").notNull().default(0),
   availablePoints: integer("available_points").notNull().default(0), // Points that can be spent
   lifetimePoints: integer("lifetime_points").notNull().default(0), // Total points ever earned

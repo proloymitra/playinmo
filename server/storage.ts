@@ -75,11 +75,11 @@ export interface IStorage {
   deleteAchievement(id: number): Promise<boolean>;
 
   // User Achievements
-  getUserAchievements(userId: string): Promise<(UserAchievement & { achievement: Achievement })[]>;
-  getUserAchievementProgress(userId: string, achievementId: number): Promise<UserAchievement | undefined>;
-  updateUserAchievementProgress(userId: string, achievementId: number, progress: any): Promise<UserAchievement>;
-  completeUserAchievement(userId: string, achievementId: number): Promise<UserAchievement>;
-  checkAndUpdateAchievements(userId: string, event: any): Promise<UserAchievement[]>;
+  getUserAchievements(userId: number): Promise<(UserAchievement & { achievement: Achievement })[]>;
+  getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievement | undefined>;
+  updateUserAchievementProgress(userId: number, achievementId: number, progress: any): Promise<UserAchievement>;
+  completeUserAchievement(userId: number, achievementId: number): Promise<UserAchievement>;
+  checkAndUpdateAchievements(userId: number, event: any): Promise<UserAchievement[]>;
 
   // Rewards System
   getRewards(): Promise<Reward[]>;
@@ -89,16 +89,16 @@ export interface IStorage {
   deleteReward(id: number): Promise<boolean>;
 
   // User Rewards
-  getUserRewards(userId: string): Promise<(UserReward & { reward: Reward })[]>;
-  purchaseReward(userId: string, rewardId: number): Promise<UserReward>;
-  equipReward(userId: string, rewardId: number): Promise<UserReward>;
-  unequipReward(userId: string, rewardId: number): Promise<UserReward>;
+  getUserRewards(userId: number): Promise<(UserReward & { reward: Reward })[]>;
+  purchaseReward(userId: number, rewardId: number): Promise<UserReward>;
+  equipReward(userId: number, rewardId: number): Promise<UserReward>;
+  unequipReward(userId: number, rewardId: number): Promise<UserReward>;
 
   // User Points
-  getUserPoints(userId: string): Promise<UserPoints | undefined>;
-  addUserPoints(userId: string, points: number): Promise<UserPoints>;
-  spendUserPoints(userId: string, points: number): Promise<UserPoints>;
-  initializeUserPoints(userId: string): Promise<UserPoints>;
+  getUserPoints(userId: number): Promise<UserPoints | undefined>;
+  addUserPoints(userId: number, points: number): Promise<UserPoints>;
+  spendUserPoints(userId: number, points: number): Promise<UserPoints>;
+  initializeUserPoints(userId: number): Promise<UserPoints>;
 
   // Email tracking
   logEmail(emailLog: InsertEmailLog): Promise<EmailLog>;

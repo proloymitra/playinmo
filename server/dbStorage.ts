@@ -470,7 +470,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userAchievements.userId, userId));
   }
 
-  async getUserAchievementProgress(userId: string, achievementId: number): Promise<UserAchievement | undefined> {
+  async getUserAchievementProgress(userId: number, achievementId: number): Promise<UserAchievement | undefined> {
     const [progress] = await db
       .select()
       .from(userAchievements)
@@ -481,7 +481,7 @@ export class DatabaseStorage implements IStorage {
     return progress;
   }
 
-  async updateUserAchievementProgress(userId: string, achievementId: number, progress: any): Promise<UserAchievement> {
+  async updateUserAchievementProgress(userId: number, achievementId: number, progress: any): Promise<UserAchievement> {
     const existing = await this.getUserAchievementProgress(userId, achievementId);
     
     if (existing) {
@@ -509,7 +509,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async completeUserAchievement(userId: string, achievementId: number): Promise<UserAchievement> {
+  async completeUserAchievement(userId: number, achievementId: number): Promise<UserAchievement> {
     const [updated] = await db
       .update(userAchievements)
       .set({
@@ -524,7 +524,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async checkAndUpdateAchievements(userId: string, event: any): Promise<UserAchievement[]> {
+  async checkAndUpdateAchievements(userId: number, event: any): Promise<UserAchievement[]> {
     // This would contain logic to check various achievements based on events
     // For now, return empty array as this is complex business logic
     return [];
@@ -585,7 +585,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userRewards.userId, userId));
   }
 
-  async purchaseReward(userId: string, rewardId: number): Promise<UserReward> {
+  async purchaseReward(userId: number, rewardId: number): Promise<UserReward> {
     const [created] = await db
       .insert(userRewards)
       .values({
@@ -598,7 +598,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async equipReward(userId: string, rewardId: number): Promise<UserReward> {
+  async equipReward(userId: number, rewardId: number): Promise<UserReward> {
     const [updated] = await db
       .update(userRewards)
       .set({
@@ -613,7 +613,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async unequipReward(userId: string, rewardId: number): Promise<UserReward> {
+  async unequipReward(userId: number, rewardId: number): Promise<UserReward> {
     const [updated] = await db
       .update(userRewards)
       .set({
