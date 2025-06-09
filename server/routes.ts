@@ -1566,6 +1566,198 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advertisement Management Routes (Admin)
+
+  // Get all advertisements
+  app.get("/api/admin/advertisements", isAuthenticated, async (req, res) => {
+    try {
+      const advertisements = await storage.getAdvertisements();
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  // Get active advertisements by placement
+  app.get("/api/advertisements", async (req, res) => {
+    try {
+      const placement = req.query.placement as string;
+      const advertisements = await storage.getActiveAdvertisements(placement);
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching active advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  // Get advertisement by ID
+  app.get("/api/admin/advertisements/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      const advertisement = await storage.getAdvertisementById(id);
+      
+      if (!advertisement) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.json(advertisement);
+    } catch (error) {
+      console.error("Error fetching advertisement:", error);
+      res.status(500).json({ message: "Failed to fetch advertisement" });
+    }
+  });
+
+  // Create advertisement (admin only)
+  app.post("/api/admin/advertisements", isAuthenticated, async (req, res) => {
+    try {
+      const advertisementData = req.body;
+      const advertisement = await storage.createAdvertisement(advertisementData);
+      res.status(201).json(advertisement);
+    } catch (error) {
+      console.error("Error creating advertisement:", error);
+      res.status(500).json({ message: "Failed to create advertisement" });
+    }
+  });
+
+  // Update advertisement (admin only)
+  app.patch("/api/admin/advertisements/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      const updateData = req.body;
+      const advertisement = await storage.updateAdvertisement(id, updateData);
+      
+      if (!advertisement) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.json(advertisement);
+    } catch (error) {
+      console.error("Error updating advertisement:", error);
+      res.status(500).json({ message: "Failed to update advertisement" });
+    }
+  });
+
+  // Delete advertisement (admin only)
+  app.delete("/api/admin/advertisements/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      const deleted = await storage.deleteAdvertisement(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.json({ message: "Advertisement deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      res.status(500).json({ message: "Failed to delete advertisement" });
+    }
+  });
+
+  // Track advertisement view
+  app.post("/api/advertisements/:id/view", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      // Log analytics event
+      await storage.logAdEvent({
+        advertisementId: id,
+        eventType: 'view',
+        userId: req.user?.id || null,
+        sessionId: req.sessionID,
+        userAgent: req.get('User-Agent') || null,
+        ipAddress: req.ip,
+        referrer: req.get('Referer') || null,
+        metadata: { timestamp: new Date() }
+      });
+
+      // Increment view count
+      await storage.incrementAdViews(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking ad view:", error);
+      res.status(500).json({ message: "Failed to track view" });
+    }
+  });
+
+  // Track advertisement click
+  app.post("/api/advertisements/:id/click", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      // Log analytics event
+      await storage.logAdEvent({
+        advertisementId: id,
+        eventType: 'click',
+        userId: req.user?.id || null,
+        sessionId: req.sessionID,
+        userAgent: req.get('User-Agent') || null,
+        ipAddress: req.ip,
+        referrer: req.get('Referer') || null,
+        metadata: { timestamp: new Date() }
+      });
+
+      // Increment click count
+      await storage.incrementAdClicks(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking ad click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // Get advertisement analytics
+  app.get("/api/admin/advertisements/:id/analytics", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 100;
+      
+      const analytics = await storage.getAdAnalytics(id, limit);
+      const performance = await storage.getAdPerformance(id);
+      
+      res.json({ analytics, performance });
+    } catch (error) {
+      console.error("Error fetching ad analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Get advertisement statistics
+  app.get("/api/admin/advertisements/stats", isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getAdvertisementStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching advertisement stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

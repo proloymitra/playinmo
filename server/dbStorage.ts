@@ -11,7 +11,9 @@ import {
   rewards, type Reward, type InsertReward,
   userRewards, type UserReward, type InsertUserReward,
   userPoints, type UserPoints, type InsertUserPoints,
-  emailLogs, type EmailLog, type InsertEmailLog
+  emailLogs, type EmailLog, type InsertEmailLog,
+  advertisements, type Advertisement, type InsertAdvertisement,
+  adAnalytics, type AdAnalytics, type InsertAdAnalytics
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, asc } from "drizzle-orm";
@@ -821,6 +823,167 @@ export class DatabaseStorage implements IStorage {
       console.error("Error deactivating user:", error);
       return false;
     }
+  }
+
+  // Advertisement System methods
+  async getAdvertisements(): Promise<Advertisement[]> {
+    return await db
+      .select()
+      .from(advertisements)
+      .orderBy(desc(advertisements.createdAt));
+  }
+
+  async getActiveAdvertisements(placement?: string): Promise<Advertisement[]> {
+    let whereConditions = and(
+      eq(advertisements.isActive, true),
+      sql`(${advertisements.startDate} IS NULL OR ${advertisements.startDate} <= NOW())`,
+      sql`(${advertisements.endDate} IS NULL OR ${advertisements.endDate} >= NOW())`
+    );
+
+    if (placement) {
+      whereConditions = and(
+        whereConditions,
+        eq(advertisements.placement, placement)
+      );
+    }
+
+    return await db
+      .select()
+      .from(advertisements)
+      .where(whereConditions)
+      .orderBy(desc(advertisements.priority), desc(advertisements.createdAt));
+  }
+
+  async getAdvertisementById(id: number): Promise<Advertisement | undefined> {
+    const [ad] = await db
+      .select()
+      .from(advertisements)
+      .where(eq(advertisements.id, id));
+    return ad;
+  }
+
+  async createAdvertisement(ad: InsertAdvertisement): Promise<Advertisement> {
+    const [created] = await db
+      .insert(advertisements)
+      .values(ad)
+      .returning();
+    return created;
+  }
+
+  async updateAdvertisement(id: number, data: Partial<Advertisement>): Promise<Advertisement | undefined> {
+    try {
+      const [updated] = await db
+        .update(advertisements)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(advertisements.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error("Error updating advertisement:", error);
+      return undefined;
+    }
+  }
+
+  async deleteAdvertisement(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(advertisements)
+        .where(eq(advertisements.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      return false;
+    }
+  }
+
+  async incrementAdViews(id: number): Promise<void> {
+    try {
+      await db
+        .update(advertisements)
+        .set({ viewCount: sql`${advertisements.viewCount} + 1` })
+        .where(eq(advertisements.id, id));
+    } catch (error) {
+      console.error("Error incrementing ad views:", error);
+    }
+  }
+
+  async incrementAdClicks(id: number): Promise<void> {
+    try {
+      await db
+        .update(advertisements)
+        .set({ clickCount: sql`${advertisements.clickCount} + 1` })
+        .where(eq(advertisements.id, id));
+    } catch (error) {
+      console.error("Error incrementing ad clicks:", error);
+    }
+  }
+
+  // Ad Analytics methods
+  async logAdEvent(analytics: InsertAdAnalytics): Promise<AdAnalytics> {
+    const [created] = await db
+      .insert(adAnalytics)
+      .values(analytics)
+      .returning();
+    return created;
+  }
+
+  async getAdAnalytics(advertisementId: number, limit: number = 100): Promise<AdAnalytics[]> {
+    return await db
+      .select()
+      .from(adAnalytics)
+      .where(eq(adAnalytics.advertisementId, advertisementId))
+      .orderBy(desc(adAnalytics.timestamp))
+      .limit(limit);
+  }
+
+  async getAdPerformance(advertisementId: number): Promise<{ views: number; clicks: number; ctr: number }> {
+    const viewsResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(adAnalytics)
+      .where(and(
+        eq(adAnalytics.advertisementId, advertisementId),
+        eq(adAnalytics.eventType, 'view')
+      ));
+
+    const clicksResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(adAnalytics)
+      .where(and(
+        eq(adAnalytics.advertisementId, advertisementId),
+        eq(adAnalytics.eventType, 'click')
+      ));
+
+    const views = viewsResult[0]?.count || 0;
+    const clicks = clicksResult[0]?.count || 0;
+    const ctr = views > 0 ? (clicks / views) * 100 : 0;
+
+    return { views, clicks, ctr };
+  }
+
+  async getAdvertisementStats(): Promise<{ total: number; active: number; totalViews: number; totalClicks: number }> {
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(advertisements);
+
+    const activeResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(advertisements)
+      .where(eq(advertisements.isActive, true));
+
+    const viewsResult = await db
+      .select({ total: sql<number>`sum(${advertisements.viewCount})` })
+      .from(advertisements);
+
+    const clicksResult = await db
+      .select({ total: sql<number>`sum(${advertisements.clickCount})` })
+      .from(advertisements);
+
+    return {
+      total: totalResult[0]?.count || 0,
+      active: activeResult[0]?.count || 0,
+      totalViews: viewsResult[0]?.total || 0,
+      totalClicks: clicksResult[0]?.total || 0
+    };
   }
 }
 
