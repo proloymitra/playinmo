@@ -39,8 +39,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create uploads directory if it doesn't exist
   const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  const gamesDir = path.join(process.cwd(), 'public', 'games');
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  if (!fs.existsSync(gamesDir)) {
+    fs.mkdirSync(gamesDir, { recursive: true });
   }
   
   // Create a route to serve uploaded images
@@ -104,6 +108,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+
+  // Set up game file upload storage
+  const gameUploadStorage = multer.diskStorage({
+    destination: (req: any, file: any, cb: any) => {
+      cb(null, uploadDir); // Temporarily store in uploads, then extract to games
+    },
+    filename: (req: any, file: any, cb: any) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'game-upload-' + uniqueSuffix + '.zip');
+    }
+  });
+
+  // Set up game file upload middleware
+  const gameUpload = multer({
+    storage: gameUploadStorage,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB max file size for games
+    },
+    fileFilter: (req: any, file: any, cb: any) => {
+      // Accept only ZIP files
+      const allowedTypes = ['application/zip', 'application/x-zip-compressed'];
+      if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.zip')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only ZIP files are allowed for game uploads.'));
+      }
+    }
+  });
   
   // Admin middleware to check for admin role
   const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
@@ -130,6 +162,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   };
+
+  // Game file upload endpoint
+  app.post("/api/admin/upload-game", isAuthenticated, isAdmin, gameUpload.single('gameFile'), async (req: any, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No game file uploaded" });
+      }
+
+      const uploadedFile = req.file;
+      const gameTitle = req.body.gameTitle || 'Untitled Game';
+      const gameType = req.body.gameType || 'html5';
+      
+      // Create unique folder name for the game
+      const gameFolderName = `game-${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+      const gameExtractPath = path.join(gamesDir, gameFolderName);
+      
+      try {
+        // Create game directory
+        fs.mkdirSync(gameExtractPath, { recursive: true });
+        
+        // Extract ZIP file
+        const zip = new AdmZip(uploadedFile.path);
+        zip.extractAllTo(gameExtractPath, true);
+        
+        // Clean up uploaded ZIP file
+        fs.unlinkSync(uploadedFile.path);
+        
+        // Find entry file (index.html by default)
+        let entryFile = 'index.html';
+        const extractedFiles = fs.readdirSync(gameExtractPath);
+        
+        // Look for common entry files
+        const possibleEntryFiles = ['index.html', 'game.html', 'start.html', 'main.html'];
+        for (const possibleFile of possibleEntryFiles) {
+          if (extractedFiles.includes(possibleFile)) {
+            entryFile = possibleFile;
+            break;
+          }
+        }
+        
+        // Calculate folder size
+        const calculateFolderSize = (dirPath: string): number => {
+          let totalSize = 0;
+          const files = fs.readdirSync(dirPath);
+          
+          for (const file of files) {
+            const filePath = path.join(dirPath, file);
+            const stats = fs.statSync(filePath);
+            
+            if (stats.isDirectory()) {
+              totalSize += calculateFolderSize(filePath);
+            } else {
+              totalSize += stats.size;
+            }
+          }
+          
+          return totalSize;
+        };
+        
+        const fileSize = calculateFolderSize(gameExtractPath);
+        
+        res.json({
+          success: true,
+          gameFolder: gameFolderName,
+          entryFile: entryFile,
+          gameType: gameType,
+          fileSize: fileSize,
+          message: "Game files uploaded and extracted successfully"
+        });
+        
+      } catch (extractError) {
+        console.error("Error extracting game files:", extractError);
+        
+        // Clean up on error
+        if (fs.existsSync(gameExtractPath)) {
+          fs.rmSync(gameExtractPath, { recursive: true, force: true });
+        }
+        if (fs.existsSync(uploadedFile.path)) {
+          fs.unlinkSync(uploadedFile.path);
+        }
+        
+        return res.status(500).json({ message: "Failed to extract game files" });
+      }
+      
+    } catch (error) {
+      console.error("Game upload error:", error);
+      res.status(500).json({ message: "Failed to upload game file" });
+    }
+  });
+
+  // Serve hosted game files
+  app.get('/games/:gameFolder/*', (req: Request, res: Response) => {
+    const gameFolder = req.params.gameFolder;
+    const filePath = req.params[0];
+    const fullPath = path.join(gamesDir, gameFolder, filePath);
+    
+    // Security check: ensure the path is within the games directory
+    const resolvedPath = path.resolve(fullPath);
+    const resolvedGamesDir = path.resolve(gamesDir);
+    
+    if (!resolvedPath.startsWith(resolvedGamesDir)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    
+    // Check if file exists
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+    
+    // Set appropriate content type based on file extension
+    const ext = path.extname(filePath).toLowerCase();
+    const contentTypes: { [key: string]: string } = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.js': 'application/javascript',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.mp3': 'audio/mpeg',
+      '.wav': 'audio/wav',
+      '.ogg': 'audio/ogg'
+    };
+    
+    if (contentTypes[ext]) {
+      res.setHeader('Content-Type', contentTypes[ext]);
+    }
+    
+    // Set CORS headers for game assets
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    res.sendFile(resolvedPath);
+  });
+
   // === Games ===
   // Get all games
   app.get("/api/games", async (req, res) => {
@@ -207,7 +377,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         externalUrl,
         new: isNew, 
         hot: isHot, 
-        featured: isFeatured 
+        featured: isFeatured,
+        isHosted,
+        gameFolder,
+        entryFile,
+        gameType,
+        fileSize
       } = req.body;
       
       // Get categoryId from slug
@@ -230,6 +405,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         developer: 'PlayinMO',
         instructions: 'Use arrow keys to move, space to jump.',
         externalUrl: externalUrl || null,
+        isHosted: isHosted || false,
+        gameFolder: gameFolder || null,
+        entryFile: entryFile || 'index.html',
+        gameType: gameType || 'external',
+        fileSize: fileSize || null,
       });
       
       res.status(201).json(game);
@@ -245,8 +425,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload game HTML package
   app.post("/api/games/upload", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      // In a real implementation, this would handle file uploads
-      // For now, we'll simulate successful upload and create a game record
       const { 
         title, 
         description, 
@@ -254,7 +432,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl, 
         new: isNew, 
         hot: isHot, 
-        featured: isFeatured 
+        featured: isFeatured,
+        isHosted,
+        gameFolder,
+        entryFile,
+        gameType,
+        fileSize
       } = req.body;
       
       // Get categoryId from slug
@@ -276,8 +459,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         releaseDate: new Date(),
         developer: 'PlayinMO',
         instructions: 'Use arrow keys to move, space to jump.',
-        // For uploaded games, we would store a path to the extracted package
         externalUrl: null,
+        isHosted: isHosted || true,
+        gameFolder: gameFolder || null,
+        entryFile: entryFile || 'index.html',
+        gameType: gameType || 'html5',
+        fileSize: fileSize || null,
       });
       
       res.status(201).json(game);
