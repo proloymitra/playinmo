@@ -22,6 +22,7 @@ import {
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { sendWelcomeEmail } from "./emailService";
+import { migrateExistingFiles } from "./migrateExistingFiles";
 
 // Extend Express Request type to include user property
 declare global {
@@ -63,6 +64,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const fallbackUploadDir = path.join(process.cwd(), 'uploads');
     const fallbackGamesDir = path.join(process.cwd(), 'games');
     console.log('Using fallback directories:', fallbackUploadDir, fallbackGamesDir);
+  }
+
+  // Run file migration on startup to ensure existing files are tracked
+  try {
+    await migrateExistingFiles();
+  } catch (migrationError) {
+    console.error('Error during file migration:', migrationError);
   }
   
   // Create a route to serve uploaded files with database verification
@@ -1286,6 +1294,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error handling image upload:", error);
       res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Admin endpoint to manually trigger file migration
+  app.post("/api/admin/migrate-files", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log("Manual file migration triggered by admin");
+      const migratedCount = await migrateExistingFiles();
+      res.json({ 
+        success: true, 
+        message: `Successfully migrated ${migratedCount} files to persistent storage`,
+        migratedCount 
+      });
+    } catch (error) {
+      console.error("Manual migration error:", error);
+      res.status(500).json({ message: "Failed to migrate files" });
     }
   });
   
