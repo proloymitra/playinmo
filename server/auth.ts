@@ -119,17 +119,16 @@ export const configurePassport = (app: Express) => {
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
     
-    // Configure for the current Replit domain - both domains are registered in Google Console
+    // Configure multiple strategies for different domains
     const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-    const callbackURL = `https://${replitDomain || 'localhost:5000'}/api/auth/google/callback`;
-    console.log('Google OAuth callback URL:', callbackURL);
     
-    passport.use(
+    // Strategy for custom domain
+    passport.use('google-custom',
       new GoogleStrategy(
         {
           clientID: googleClientId,
           clientSecret: googleClientSecret,
-          callbackURL: callbackURL,
+          callbackURL: 'https://playinmo.com/api/auth/google/callback',
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
@@ -185,19 +184,13 @@ export const configurePassport = (app: Express) => {
       )
     );
 
-    // Authentication routes - only add if Google auth is configured
-    app.get(
-      '/api/auth/google',
-      (req, res, next) => {
-        console.log('Google OAuth initiated from:', req.get('host'));
-        console.log('Full URL:', `${req.protocol}://${req.get('host')}/api/auth/google/callback`);
-        next();
-      },
-      passport.authenticate('google', { scope: ['profile', 'email'] })
-    );
+    // Set up Google authentication routes  
+    app.get('/api/auth/google', (req, res, next) => {
+      console.log('Google OAuth initiated from:', req.get('host'));
+      passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+    });
 
-    app.get(
-      '/api/auth/google/callback',
+    app.get('/api/auth/google/callback', 
       passport.authenticate('google', { failureRedirect: '/login?error=oauth_failed' }),
       (req, res) => {
         console.log('Google OAuth callback successful, user:', req.user);

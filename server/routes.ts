@@ -73,6 +73,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Error during file migration:', migrationError);
   }
   
+  // Add CORS headers for cross-domain access
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'https://playinmo.com',
+      `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`,
+      'http://localhost:5000'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    
+    next();
+  });
+
   // Create a route to serve uploaded files with database verification
   app.get('/uploads/:filename', async (req: Request, res: Response) => {
     const filename = req.params.filename;
