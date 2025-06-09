@@ -119,8 +119,9 @@ export const configurePassport = (app: Express) => {
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
     
-    // Use the full domain path for callback URL to ensure it matches Google Console config
-    const callbackURL = `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/api/auth/google/callback`;
+    // Use HTTPS for all Replit domains as they provide SSL
+    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
+    const callbackURL = `https://${domain}/api/auth/google/callback`;
     console.log('Google OAuth callback URL:', callbackURL);
     
     passport.use(
