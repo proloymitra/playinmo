@@ -800,8 +800,16 @@ export class DatabaseStorage implements IStorage {
 
   // File storage methods for persistent file tracking
   async createFileRecord(fileData: InsertFileStorage): Promise<FileStorage> {
-    const [file] = await db.insert(fileStorage).values(fileData).returning();
-    return file;
+    try {
+      console.log("Creating file record with data:", fileData);
+      const [file] = await db.insert(fileStorage).values(fileData).returning();
+      console.log("File record created successfully:", file);
+      return file;
+    } catch (error) {
+      console.error("Database error in createFileRecord:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      throw error;
+    }
   }
 
   async getFileByFilename(filename: string): Promise<FileStorage | undefined> {

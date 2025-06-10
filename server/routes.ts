@@ -1364,7 +1364,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileSize,
           storagePath,
           fileType: 'image',
-          uploadedBy: req.user?.id || null
+          uploadedBy: req.user?.id || null,
+          isActive: true
         });
         console.log(`File metadata stored in database: ${filename}`);
         
