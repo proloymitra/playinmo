@@ -181,19 +181,10 @@ export const configurePassport = (app: Express) => {
       )
     );
 
-    // Simple auth routes - redirect to Replit domain for OAuth if on custom domain
+    // Simple Google OAuth routes
     app.get('/api/auth/google', (req, res, next) => {
       const hostname = req.get('host');
       console.log('Google OAuth initiated from:', hostname);
-      
-      // If on custom domain, redirect to Replit domain for OAuth
-      if (hostname === 'playinmo.com') {
-        const authUrl = `https://${replitDomain}/api/auth/google`;
-        console.log('Redirecting to Replit domain for OAuth:', authUrl);
-        return res.redirect(authUrl);
-      }
-      
-      // Normal OAuth flow for Replit domain
       passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
     });
 
@@ -204,8 +195,13 @@ export const configurePassport = (app: Express) => {
         console.log('Session ID:', req.sessionID);
         console.log('Is authenticated:', req.isAuthenticated());
         
-        // Always redirect back to custom domain after successful auth
-        res.redirect('https://playinmo.com/');
+        // Determine where to redirect based on original request
+        const hostname = req.get('host');
+        if (hostname === 'playinmo.com') {
+          res.redirect('https://playinmo.com/');
+        } else {
+          res.redirect('/');
+        }
       }
     );
   } else {
