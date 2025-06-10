@@ -230,16 +230,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
+      // Handle special admin user (ID 999) directly
+      if (req.user.id === 999 || req.user.isAdmin) {
+        console.log("Admin check passed - Special admin user");
+        return next();
+      }
+      
       const user = await storage.getUser(req.user.id);
       console.log("Admin check - Found user:", user ? { id: user.id, isAdmin: user.isAdmin } : "Not found");
       
-      // For now, allow any authenticated user to access admin functions
-      // This is temporary to fix the CMS access issue
       if (!user) {
         return res.status(403).json({ message: "User not found" });
       }
       
-      next();
+      if (user.isAdmin) {
+        console.log("Admin check passed - Database admin user");
+        return next();
+      }
+      
+      return res.status(403).json({ message: "Admin access required" });
     } catch (error) {
       console.error("Admin middleware error:", error);
       res.status(500).json({ message: "Server error" });
