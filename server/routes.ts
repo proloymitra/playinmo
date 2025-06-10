@@ -73,6 +73,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Error during file migration:', migrationError);
   }
   
+  // Register all existing files in database
+  try {
+    const { registerAllFiles } = await import('./fixDatabase');
+    await registerAllFiles();
+  } catch (registrationError) {
+    console.error('Error during file registration:', registrationError);
+  }
+  
   // Add CORS headers for cross-domain access
   app.use((req, res, next) => {
     const origin = req.headers.origin;
