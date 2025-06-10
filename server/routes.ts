@@ -39,9 +39,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
   configurePassport(app);
   
-  // Use persistent storage directory for uploads with database tracking for persistence
-  const uploadDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'uploads');
-  const gamesDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'games');
+  // Use persistent storage in production, public directory for development
+  const uploadDir = process.env.NODE_ENV === 'production' 
+    ? path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'uploads')
+    : path.join(process.cwd(), 'public', 'uploads');
+  const gamesDir = process.env.NODE_ENV === 'production'
+    ? path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'games')
+    : path.join(process.cwd(), 'public', 'games');
   
   // Create directories if they don't exist
   try {
@@ -97,8 +101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Create a route to serve uploaded files with fallback to direct file serving
-  app.get('/api/uploads/:filename', async (req: Request, res: Response) => {
+  // Create unified route to serve uploaded files from multiple locations
+  app.get(['/uploads/:filename', '/api/uploads/:filename'], async (req: Request, res: Response) => {
     const filename = req.params.filename;
     
     // Add CORS headers for file serving
@@ -107,10 +111,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     
     try {
-      const filePath = path.join(uploadDir, filename);
+      // Check multiple possible locations for the file
+      const possiblePaths = [
+        path.join(uploadDir, filename), // Persistent storage
+        path.join(process.cwd(), 'public', 'uploads', filename), // Legacy public location
+      ];
       
-      // Check if file exists physically first
-      if (fs.existsSync(filePath)) {
+      let filePath = null;
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          filePath = possiblePath;
+          break;
+        }
+      }
+      
+      if (filePath) {
         // Determine content type from file extension
         const ext = path.extname(filename).toLowerCase();
         let contentType = 'application/octet-stream';
