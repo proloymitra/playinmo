@@ -119,73 +119,11 @@ export const configurePassport = (app: Express) => {
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
     
-    // Configure multiple strategies for different domains
+    // Use single strategy that works for both domains
+    // Google has both callback URLs registered, so we'll use the Replit one as primary
     const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
     
-    // Strategy for custom domain
-    passport.use('google-custom',
-      new GoogleStrategy(
-        {
-          clientID: googleClientId,
-          clientSecret: googleClientSecret,
-          callbackURL: 'https://playinmo.com/api/auth/google/callback',
-        },
-        async (accessToken, refreshToken, profile, done) => {
-          try {
-            console.log('Google OAuth profile received:', {
-              id: profile.id,
-              displayName: profile.displayName,
-              emails: profile.emails,
-              photos: profile.photos
-            });
-
-            // Check if user exists in the database
-            let user = await storage.getUserByGoogleId(profile.id);
-            console.log('Existing user found:', user ? 'Yes' : 'No');
-
-            if (!user) {
-              // If the user doesn't exist, create a new user
-              const email = profile.emails && profile.emails[0] ? profile.emails[0].value : '';
-              const baseUsername = profile.displayName || email.split('@')[0];
-              const photoUrl = profile.photos && profile.photos[0] ? profile.photos[0].value : '';
-
-              // Generate a unique username by checking for existing usernames
-              let username = baseUsername;
-              let counter = 1;
-              while (await storage.getUserByUsername(username)) {
-                username = `${baseUsername}${counter}`;
-                counter++;
-              }
-
-              console.log('Creating new user with data:', {
-                username,
-                email,
-                googleId: profile.id,
-                avatarUrl: photoUrl,
-              });
-
-              user = await storage.createUser({
-                username,
-                email,
-                googleId: profile.id,
-                avatarUrl: photoUrl,
-              });
-              
-              console.log('New user created:', user);
-            }
-
-            console.log('Returning user to passport:', user);
-            return done(null, user);
-          } catch (error) {
-            console.error('Google OAuth error:', error);
-            return done(error as Error, undefined);
-          }
-        }
-      )
-    );
-
-    // Strategy for Replit domain
-    passport.use('google-replit',
+    passport.use(
       new GoogleStrategy(
         {
           clientID: googleClientId,
@@ -243,45 +181,33 @@ export const configurePassport = (app: Express) => {
       )
     );
 
-    // Set up Google authentication routes with domain detection
+    // Simple auth routes - redirect to Replit domain for OAuth if on custom domain
     app.get('/api/auth/google', (req, res, next) => {
       const hostname = req.get('host');
       console.log('Google OAuth initiated from:', hostname);
       
-      // Choose strategy based on hostname
-      const strategy = hostname === 'playinmo.com' ? 'google-custom' : 'google-replit';
-      console.log('Using OAuth strategy:', strategy);
+      // If on custom domain, redirect to Replit domain for OAuth
+      if (hostname === 'playinmo.com') {
+        const authUrl = `https://${replitDomain}/api/auth/google`;
+        console.log('Redirecting to Replit domain for OAuth:', authUrl);
+        return res.redirect(authUrl);
+      }
       
-      passport.authenticate(strategy, { scope: ['profile', 'email'] })(req, res, next);
+      // Normal OAuth flow for Replit domain
+      passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
     });
 
-    app.get('/api/auth/google/callback', (req, res, next) => {
-      const hostname = req.get('host');
-      const strategy = hostname === 'playinmo.com' ? 'google-custom' : 'google-replit';
-      
-      passport.authenticate(strategy, { failureRedirect: '/login?error=oauth_failed' }, (err: any, user: any) => {
-        if (err) {
-          console.error('Google OAuth callback error:', err);
-          return res.redirect('/login?error=oauth_failed');
-        }
-        if (!user) {
-          console.log('Google OAuth callback: No user returned');
-          return res.redirect('/login?error=oauth_failed');
-        }
+    app.get('/api/auth/google/callback', 
+      passport.authenticate('google', { failureRedirect: '/login?error=oauth_failed' }),
+      (req, res) => {
+        console.log('Google OAuth callback successful, user:', req.user);
+        console.log('Session ID:', req.sessionID);
+        console.log('Is authenticated:', req.isAuthenticated());
         
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error('Login error:', loginErr);
-            return res.redirect('/login?error=login_failed');
-          }
-          
-          console.log('Google OAuth callback successful, user:', req.user);
-          console.log('Session ID:', req.sessionID);
-          console.log('Is authenticated:', req.isAuthenticated());
-          res.redirect('/');
-        });
-      })(req, res, next);
-    });
+        // Always redirect back to custom domain after successful auth
+        res.redirect('https://playinmo.com/');
+      }
+    );
   } else {
     console.log('Google authentication not configured - skipping strategy setup');
   }

@@ -366,6 +366,7 @@ export const insertFileStorageSchema = createInsertSchema(fileStorage).pick({
   storagePath: true,
   fileType: true,
   uploadedBy: true,
+  isActive: true,
 });
 
 export type FileStorage = typeof fileStorage.$inferSelect;

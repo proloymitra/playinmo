@@ -279,6 +279,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const fileSize = calculateFolderSize(gameExtractPath);
         
+        // Register the game folder in the database for persistence
+        await storage.createFileRecord({
+          filename: gameFolderName,
+          originalName: uploadedFile.originalname,
+          mimeType: 'application/zip',
+          fileSize: fileSize,
+          storagePath: gameExtractPath,
+          fileType: 'game',
+          uploadedBy: req.user.id
+        });
+        
+        console.log('Game folder registered in database:', gameFolderName);
+        
         res.json({
           success: true,
           gameFolder: gameFolderName,
@@ -1093,8 +1106,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Formatted game data:", gameData);
       
-      // Create the game directly
-      const game = await storage.createGame(gameData);
+      // Add missing required fields for the database
+      const completeGameData = {
+        ...gameData,
+        isHosted: req.body.isHosted || false,
+        entryFile: req.body.entryFile || null,
+        gameType: req.body.gameType || 'external'
+      };
+      
+      console.log("Complete game data with required fields:", completeGameData);
+      
+      // Create the game with all required fields
+      const game = await storage.createGame(completeGameData);
       console.log("Created game:", game);
       
       res.status(201).json(game);
