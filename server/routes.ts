@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Create a route to serve uploaded files with database verification
+  // Create a route to serve uploaded files with fallback to direct file serving
   app.get('/uploads/:filename', async (req: Request, res: Response) => {
     const filename = req.params.filename;
     
@@ -116,27 +116,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     
     try {
-      // Check if file exists in database
-      const fileRecord = await dbStorage.getFileByFilename(filename);
-      if (!fileRecord) {
-        console.error(`File not found in database: ${filename}`);
-        return res.status(404).send('File not found');
-      }
-
       const filePath = path.join(uploadDir, filename);
       
-      fs.access(filePath, fs.constants.F_OK, async (err) => {
-        if (err) {
-          console.error(`Physical file not found: ${filename}`);
-          // File exists in database but not on disk - mark as inactive
-          await dbStorage.deactivateFile(filename);
-          return res.status(404).send('File not found');
+      // Check if file exists physically first
+      if (fs.existsSync(filePath)) {
+        // Determine content type from file extension
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        
+        const contentTypes: { [key: string]: string } = {
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.gif': 'image/gif',
+          '.webp': 'image/webp',
+          '.svg': 'image/svg+xml'
+        };
+        
+        if (contentTypes[ext]) {
+          contentType = contentTypes[ext];
         }
         
-        // Set appropriate content type from database record
-        res.setHeader('Content-Type', fileRecord.mimeType);
-        res.sendFile(filePath);
-      });
+        res.setHeader('Content-Type', contentType);
+        res.sendFile(path.resolve(filePath));
+        
+        // Register in database if not already registered (background task)
+        setImmediate(async () => {
+          try {
+            const fileRecord = await dbStorage.getFileByFilename(filename);
+            if (!fileRecord) {
+              const stats = fs.statSync(filePath);
+              await dbStorage.createFileRecord({
+                filename,
+                originalName: filename,
+                mimeType: contentType,
+                fileSize: stats.size,
+                storagePath: filePath,
+                fileType: 'image',
+                uploadedBy: null
+              });
+              console.log(`Auto-registered file: ${filename}`);
+            }
+          } catch (error) {
+            console.error(`Error auto-registering file ${filename}:`, error);
+          }
+        });
+      } else {
+        console.error(`File not found: ${filename}`);
+        res.status(404).send('File not found');
+      }
     } catch (error) {
       console.error('Error serving file:', error);
       res.status(500).send('Server error');
@@ -1321,9 +1349,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileSize = req.file.size;
       const storagePath = path.join(uploadDir, filename);
       
+      // Verify file was actually written to disk
+      if (!fs.existsSync(storagePath)) {
+        console.error(`File not found on disk after upload: ${filename}`);
+        return res.status(500).json({ message: "File upload failed - file not saved" });
+      }
+      
       // Store file metadata in database for persistence tracking
       try {
-        await dbStorage.createFileRecord({
+        const fileRecord = await dbStorage.createFileRecord({
           filename,
           originalName,
           mimeType,
@@ -1333,19 +1367,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           uploadedBy: req.user?.id || null
         });
         console.log(`File metadata stored in database: ${filename}`);
+        
+        // Verify database registration succeeded
+        const verifyRecord = await dbStorage.getFileByFilename(filename);
+        if (!verifyRecord) {
+          console.error(`Database registration verification failed for: ${filename}`);
+          return res.status(500).json({ message: "File registration verification failed" });
+        }
+        
       } catch (dbError) {
         console.error("Error storing file metadata:", dbError);
-        // Continue with upload even if database fails
+        // Remove the uploaded file if database registration fails
+        try {
+          fs.unlinkSync(storagePath);
+        } catch (unlinkError) {
+          console.error("Error removing failed upload:", unlinkError);
+        }
+        return res.status(500).json({ message: "Failed to register file in database" });
       }
       
       // Return the URL for the uploaded image
       const imageUrl = `/uploads/${filename}`;
       
-      console.log(`Image uploaded successfully: ${imageUrl}`);
+      console.log(`Image uploaded and registered successfully: ${imageUrl}`);
       
       res.status(200).json({ 
         message: "Image uploaded successfully",
-        imageUrl 
+        imageUrl,
+        filename 
       });
     } catch (error) {
       console.error("Error handling image upload:", error);
