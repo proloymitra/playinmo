@@ -39,17 +39,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
   configurePassport(app);
   
-  // Use persistent storage directories - store in home directory to survive deployments
-  const persistentDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage');
-  const uploadDir = path.join(persistentDir, 'uploads');
-  const gamesDir = path.join(persistentDir, 'games');
+  // Use public directory for web-accessible uploads with database tracking for persistence
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  const gamesDir = path.join(process.cwd(), 'public', 'games');
   
-  // Create persistent directories if they don't exist
+  // Create directories if they don't exist
   try {
-    if (!fs.existsSync(persistentDir)) {
-      fs.mkdirSync(persistentDir, { recursive: true });
-      console.log('Created persistent storage directory:', persistentDir);
-    }
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
       console.log('Created uploads directory:', uploadDir);
@@ -59,11 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Created games directory:', gamesDir);
     }
   } catch (error) {
-    console.error('Error creating persistent directories:', error);
-    // Fallback to project directory if persistent storage fails
-    const fallbackUploadDir = path.join(process.cwd(), 'uploads');
-    const fallbackGamesDir = path.join(process.cwd(), 'games');
-    console.log('Using fallback directories:', fallbackUploadDir, fallbackGamesDir);
+    console.error('Error creating directories:', error);
   }
 
   // Run file migration on startup to ensure existing files are tracked
@@ -660,6 +651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const topPlayers = await storage.getTopPlayers(limit);
       res.json(topPlayers);
     } catch (error) {
+      console.error("Leaderboard error:", error);
       res.status(500).json({ message: "Failed to fetch leaderboard" });
     }
   });
@@ -686,6 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messages = await storage.getChatMessages(limit);
       res.json(messages);
     } catch (error) {
+      console.error("Chat messages error:", error);
       res.status(500).json({ message: "Failed to fetch chat messages" });
     }
   });
