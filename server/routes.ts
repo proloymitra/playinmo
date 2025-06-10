@@ -2068,6 +2068,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to verify file upload system
+  app.post("/api/test-upload", async (req: Request, res: Response) => {
+    try {
+      // Test database file registration
+      const testFileData = {
+        filename: `test-${Date.now()}.png`,
+        originalName: "test.png",
+        mimeType: "image/png",
+        fileSize: 1024,
+        storagePath: "/test/path",
+        fileType: "image",
+        uploadedBy: null,
+        isActive: true
+      };
+      
+      const fileRecord = await dbStorage.createFileRecord(testFileData);
+      res.json({ 
+        message: "Upload system functional", 
+        uploadDir,
+        file: fileRecord 
+      });
+    } catch (error) {
+      console.error("Upload test error:", error);
+      res.status(500).json({ message: "Upload system error", error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
