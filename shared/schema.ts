@@ -348,14 +348,14 @@ export type EmailLog = typeof emailLogs.$inferSelect;
 export const fileStorage = pgTable("file_storage", {
   id: serial("id").primaryKey(),
   filename: varchar("filename", { length: 255 }).notNull().unique(),
-  originalName: varchar("original_name", { length: 255 }).notNull(),
-  mimeType: varchar("mime_type", { length: 100 }).notNull(),
-  fileSize: integer("file_size").notNull(),
-  storagePath: text("storage_path").notNull(),
-  fileType: varchar("file_type", { length: 50 }).notNull(), // 'image', 'game', 'document'
-  uploadedBy: integer("uploaded_by").references(() => users.id),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  originalName: varchar("originalName", { length: 255 }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  fileSize: integer("fileSize").notNull(),
+  storagePath: text("storagePath").notNull(),
+  fileType: varchar("fileType", { length: 50 }).notNull(), // 'image', 'game', 'document'
+  uploadedBy: integer("uploadedBy").references(() => users.id),
+  isActive: boolean("isActive").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertFileStorageSchema = createInsertSchema(fileStorage).pick({
