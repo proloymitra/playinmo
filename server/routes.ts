@@ -39,9 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
   configurePassport(app);
   
-  // Use public directory for web-accessible uploads with database tracking for persistence
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  const gamesDir = path.join(process.cwd(), 'public', 'games');
+  // Use persistent storage directory for uploads with database tracking for persistence
+  const uploadDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'uploads');
+  const gamesDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'games');
   
   // Create directories if they don't exist
   try {
@@ -98,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a route to serve uploaded files with fallback to direct file serving
-  app.get('/uploads/:filename', async (req: Request, res: Response) => {
+  app.get('/api/uploads/:filename', async (req: Request, res: Response) => {
     const filename = req.params.filename;
     
     // Add CORS headers for file serving
