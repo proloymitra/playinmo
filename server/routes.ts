@@ -39,13 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
   configurePassport(app);
   
-  // Use persistent storage in production, public directory for development
-  const uploadDir = process.env.NODE_ENV === 'production' 
-    ? path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'uploads')
-    : path.join(process.cwd(), 'public', 'uploads');
-  const gamesDir = process.env.NODE_ENV === 'production'
-    ? path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'games')
-    : path.join(process.cwd(), 'public', 'games');
+  // Always use persistent storage to ensure uploads survive deployments
+  const uploadDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'uploads');
+  const gamesDir = path.join(process.env.HOME || '/home/runner', 'persistent_storage', 'games');
   
   // Create directories if they don't exist
   try {
