@@ -57,20 +57,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Error creating directories:', error);
   }
 
-  // Run file migration on startup to ensure existing files are tracked
-  try {
-    await migrateExistingFiles();
-  } catch (migrationError) {
-    console.error('Error during file migration:', migrationError);
-  }
-  
-  // Register all existing files in database
-  try {
-    const { registerAllFiles } = await import('./fixDatabase');
-    await registerAllFiles();
-  } catch (registrationError) {
-    console.error('Error during file registration:', registrationError);
-  }
+  // File migration disabled to preserve user image mappings
+  console.log('File migration disabled to preserve existing image mappings');
   
   // Add CORS headers for cross-domain access
   app.use((req, res, next) => {
