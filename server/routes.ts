@@ -2093,30 +2093,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test endpoint to verify file upload system
-  app.post("/api/test-upload", async (req: Request, res: Response) => {
+  // Image corruption diagnostic endpoint
+  app.get("/api/admin/image-analysis", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      // Test database file registration
-      const testFileData = {
-        filename: `test-${Date.now()}.png`,
-        originalName: "test.png",
-        mimeType: "image/png",
-        fileSize: 1024,
-        storagePath: "/test/path",
-        fileType: "image",
-        uploadedBy: null,
-        isActive: true
-      };
+      const games = await storage.getGames();
+      const gamesWithImages = games.filter(game => game.imageUrl);
       
-      const fileRecord = await dbStorage.createFileRecord(testFileData);
-      res.json({ 
-        message: "Upload system functional", 
-        uploadDir,
-        file: fileRecord 
+      const fileAnalysis = [];
+      const sizeCounts: { [key: number]: number } = {};
+      
+      for (const game of gamesWithImages) {
+        const filename = game.imageUrl.split('/').pop();
+        if (filename) {
+          const filePath = path.join(uploadDir, filename);
+          
+          if (fs.existsSync(filePath)) {
+            const stats = fs.statSync(filePath);
+            const size = stats.size;
+            
+            sizeCounts[size] = (sizeCounts[size] || 0) + 1;
+            
+            fileAnalysis.push({
+              gameId: game.id,
+              title: game.title,
+              filename,
+              size,
+              imageUrl: game.imageUrl,
+              isCorrupted: size === 1826038 // Known corrupted snake image size
+            });
+          } else {
+            fileAnalysis.push({
+              gameId: game.id,
+              title: game.title,
+              filename,
+              size: 0,
+              imageUrl: game.imageUrl,
+              isCorrupted: true,
+              missing: true
+            });
+          }
+        }
+      }
+      
+      const corruptedCount = fileAnalysis.filter(f => f.isCorrupted).length;
+      
+      res.json({
+        totalGames: gamesWithImages.length,
+        corruptedCount,
+        uniqueCount: gamesWithImages.length - corruptedCount,
+        games: fileAnalysis.map(g => ({
+          id: g.gameId,
+          title: g.title,
+          corrupted: g.isCorrupted,
+          imageUrl: g.imageUrl
+        }))
       });
+      
     } catch (error) {
-      console.error("Upload test error:", error);
-      res.status(500).json({ message: "Upload system error", error: error.message });
+      console.error("Image analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze images" });
     }
   });
 
