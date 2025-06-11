@@ -119,16 +119,13 @@ export const configurePassport = (app: Express) => {
   if (googleClientId && googleClientSecret) {
     console.log('Configuring Google authentication strategy');
     
-    // Use single strategy that works for both domains
-    // Google has both callback URLs registered, so we'll use the Replit one as primary
-    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-    
+    // Configure for custom domain only
     passport.use(
       new GoogleStrategy(
         {
           clientID: googleClientId,
           clientSecret: googleClientSecret,
-          callbackURL: `https://${replitDomain}/api/auth/google/callback`,
+          callbackURL: `https://playinmo.com/api/auth/google/callback`,
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
@@ -195,13 +192,8 @@ export const configurePassport = (app: Express) => {
         console.log('Session ID:', req.sessionID);
         console.log('Is authenticated:', req.isAuthenticated());
         
-        // Determine where to redirect based on original request
-        const hostname = req.get('host');
-        if (hostname === 'playinmo.com') {
-          res.redirect('https://playinmo.com/');
-        } else {
-          res.redirect('/');
-        }
+        // Always redirect to custom domain
+        res.redirect('https://playinmo.com/');
       }
     );
   } else {
