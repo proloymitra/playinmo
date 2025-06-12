@@ -1381,21 +1381,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await serveGameImage(req, res);
   });
 
-  // Preload all images endpoint
-  app.post("/api/admin/preload-images", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  // Download PNG images from Google Drive
+  app.post("/api/admin/download-images", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
-      const { preloadAllImages } = await import('./imageProxy');
-      const result = await preloadAllImages();
+      const { downloadAllGameImages } = await import('./downloadGameImages');
+      const result = await downloadAllGameImages();
       
       res.json({
         success: true,
-        message: `Preloaded ${result.loaded} images, ${result.failed} failed`,
-        loaded: result.loaded,
+        message: `Downloaded ${result.downloaded} PNG images, ${result.failed} failed`,
+        downloaded: result.downloaded,
         failed: result.failed
       });
     } catch (error) {
-      console.error('Image preload error:', error);
-      res.status(500).json({ success: false, message: 'Failed to preload images' });
+      console.error('Image download error:', error);
+      res.status(500).json({ success: false, message: 'Failed to download images' });
     }
   });
 
