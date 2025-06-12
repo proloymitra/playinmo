@@ -1375,6 +1375,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Map Google Drive images endpoint
+  app.post("/api/admin/map-google-drive", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { mappings } = req.body;
+      
+      if (!mappings || !Array.isArray(mappings)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Mappings array is required' 
+        });
+      }
+      
+      const { batchUpdateFromGoogleDrive } = await import('./googleDriveImageMapper');
+      const results = await batchUpdateFromGoogleDrive(mappings);
+      
+      const successful = results.filter(r => r.status === 'success').length;
+      const failed = results.filter(r => r.status === 'failed').length;
+      
+      res.json({
+        success: true,
+        message: `Mapped ${successful} Google Drive images, ${failed} failed`,
+        results,
+        summary: { successful, failed }
+      });
+    } catch (error) {
+      console.error('Google Drive mapping error:', error);
+      res.status(500).json({ success: false, message: 'Failed to map Google Drive images' });
+    }
+  });
+
   // Convert all images to base64 endpoint
   app.post("/api/admin/convert-to-base64", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
