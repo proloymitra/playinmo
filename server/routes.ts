@@ -1375,6 +1375,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Convert all images to base64 endpoint
+  app.post("/api/admin/convert-to-base64", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { convertAllImagesToBase64 } = await import('./convertToBase64');
+      const result = await convertAllImagesToBase64();
+      
+      res.json({
+        success: true,
+        message: `Converted ${result.converted} images to permanent base64 storage`,
+        converted: result.converted,
+        failed: result.failed
+      });
+    } catch (error) {
+      console.error('Conversion error:', error);
+      res.status(500).json({ success: false, message: 'Failed to convert images' });
+    }
+  });
+
   // Admin endpoint to manually trigger file migration
   app.post("/api/admin/migrate-files", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
