@@ -1375,33 +1375,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Map Google Drive images endpoint
-  app.post("/api/admin/map-google-drive", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  // Image proxy endpoint
+  app.get("/api/images/:imageKey", async (req: Request, res: Response) => {
+    const { serveGameImage } = await import('./imageProxy');
+    await serveGameImage(req, res);
+  });
+
+  // Preload all images endpoint
+  app.post("/api/admin/preload-images", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
-      const { mappings } = req.body;
-      
-      if (!mappings || !Array.isArray(mappings)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Mappings array is required' 
-        });
-      }
-      
-      const { batchUpdateFromGoogleDrive } = await import('./googleDriveImageMapper');
-      const results = await batchUpdateFromGoogleDrive(mappings);
-      
-      const successful = results.filter(r => r.status === 'success').length;
-      const failed = results.filter(r => r.status === 'failed').length;
+      const { preloadAllImages } = await import('./imageProxy');
+      const result = await preloadAllImages();
       
       res.json({
         success: true,
-        message: `Mapped ${successful} Google Drive images, ${failed} failed`,
-        results,
-        summary: { successful, failed }
+        message: `Preloaded ${result.loaded} images, ${result.failed} failed`,
+        loaded: result.loaded,
+        failed: result.failed
       });
     } catch (error) {
-      console.error('Google Drive mapping error:', error);
-      res.status(500).json({ success: false, message: 'Failed to map Google Drive images' });
+      console.error('Image preload error:', error);
+      res.status(500).json({ success: false, message: 'Failed to preload images' });
     }
   });
 
